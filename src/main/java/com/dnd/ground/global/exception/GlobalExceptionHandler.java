@@ -17,15 +17,79 @@ import java.util.stream.Collectors;
  * @author 박찬호
  * @description 전역 예외 처리를 위한 Advice 클래스
  * @since 2022-08-24
- * @updated 1 카카오 예외에 대한 핸들러 추가
- * @note 코드 정리 필요
- *          - 2023.05.19 박찬호
+ * @updated 1. 예외 처리 정리
+ *          - 2023.06.02 박찬호
  *
  */
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    /*NEMODU EXCEPTION*/
+    @ExceptionHandler({
+            UserException.class,
+            AuthException.class,
+            FriendException.class,
+            ExerciseRecordException.class,
+            KakaoException.class,
+            CommonException.class
+    })
+    public ResponseEntity<ErrorResponse> handleNemoduException(BaseException e) {
+        log.error("{}! code:{} | Message:{} | trace:{}", e.getClass(), e.getCode(), e.getDebugMessage(), e.fewStackTrace());
+
+        String message = e.getMessage() != null ? e.getMessage() : e.getDebugMessage();
+        return makeResponseFormat(e.getExceptionCode(), e.fewStackTrace(), message);
+    }
+
+    @ExceptionHandler(ChallengeException.class)
+    public ResponseEntity<ErrorResponse> handleChallengeException(ChallengeException e) {
+        log.error("{}! code:{} | Message:{} | trace:{}", e.getClass(), e.getCode(), e.getDebugMessage(), e.fewStackTrace());
+
+        //4500 이상은 회원-챌린지 간 예외사항
+        if (Integer.parseInt(e.getCode()) >= 4500) {
+            log.error("UserChallenge exception: Code:{} | Message:{} | StackTrace:{} | NicknameList:{}", e.getCode(), e.getDebugMessage(), e.fewStackTrace(), e.getNicknames());
+        } else {
+            log.error("Challenge exception: Code:{} | Message:{} | StackTrace:{}", e.getCode(), e.getDebugMessage(), e.fewStackTrace());
+        }
+
+        String message = e.getMessage() != null ? e.getMessage() : e.getDebugMessage();
+        return makeResponseFormat(e.getExceptionCode(), e.fewStackTrace(), message);
+    }
+
+    /*DEFAULT EXCEPTION*/
+    @ExceptionHandler({
+            SQLIntegrityConstraintViolationException.class,
+            NullPointerException.class,
+            WebClientException.class,
+            ParseException.class,
+            Exception.class
+    })
+    public ResponseEntity<ErrorResponse> handleDefaultException(Exception e) {
+        List<String> trace = getFewTrace(e.getStackTrace());
+        ExceptionCodeSet exceptionByMsg = ExceptionCodeSet.findExceptionByMsg(e.getMessage());
+
+        if (exceptionByMsg == null) {
+            log.error("{}!: Code:{} | Message:{} | StackTrace:{}", e.getClass(), ExceptionCodeSet.INTERNAL_SERVER_ERROR.getCode(), e.getMessage(), trace);
+            return makeResponseFormat(ExceptionCodeSet.INTERNAL_SERVER_ERROR, trace, "오류가 발생했습니다.");
+        } else {
+            log.error("{}!: Code:{} | Message:{} | StackTrace:{}", e.getClass(), exceptionByMsg.getCode(), e.getMessage(), trace);
+            return makeResponseFormat(exceptionByMsg, trace, "오류가 발생했습니다.");
+        }
+    }
+
+    /**
+     * 사전에 정의된 커스텀 예외에 대한 Response 생성
+     * @param exceptionCode
+     */
+    private ResponseEntity<ErrorResponse> makeResponseFormat(ExceptionCodeSet exceptionCode, List<String> trace, String message) {
+        return ResponseEntity.status(exceptionCode.getHttpStatus())
+                .body(ErrorResponse.builder()
+                        .code(exceptionCode.getCode())
+                        .message(message)
+                        .trace(trace)
+                        .build()
+                );
+    }
 
     /**
      * 역추적을 위한 간소화된 Stack trace 계산
@@ -43,133 +107,5 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                     .map(StackTraceElement::toString)
                     .collect(Collectors.toList());
         }
-    }
-
-    @ExceptionHandler(UserException.class)
-    public ResponseEntity<ErrorResponse> handleUserException(UserException e) {
-        log.error("User exception: Code:{}, Message:{}, StackTrace:{}", e.getCode(), e.getMessage(), e.fewStackTrace());
-        return makeResponseFormat(e.getExceptionCode(), e.fewStackTrace());
-    }
-
-    @ExceptionHandler(AuthException.class)
-    public ResponseEntity<ErrorResponse> handleAuthException(AuthException e) {
-        log.error("Auth exception: Code:{}, Message:{}, StackTrace:{}", e.getCode(), e.getMessage(), e.fewStackTrace());
-        return makeResponseFormat(e.getExceptionCode(), e.fewStackTrace());
-    }
-
-    @ExceptionHandler(FriendException.class)
-    public ResponseEntity<ErrorResponse> handleFriendException(FriendException e) {
-        log.error("Friend exception: Code:{}, Message:{}, StackTrace:{}", e.getCode(), e.getMessage(), e.fewStackTrace());
-        return makeResponseFormat(e.getExceptionCode(), e.fewStackTrace());
-    }
-
-    @ExceptionHandler(ChallengeException.class)
-    public ResponseEntity<ErrorResponse> handleChallengeException(ChallengeException e) {
-        //4500 초과는 회원-챌린지 간 예외사항
-        ExceptionCodeSet exceptionCode = e.getExceptionCode();
-        if (Integer.parseInt(e.getCode()) > 4500) {
-            log.error("Challenge exceed exception: Code:{}, Message:{}, StackTrace:{}", e.getCode(), e.getMessage(), e.fewStackTrace());
-            if (e.getNicknameList() != null)
-                return makeUCResponseFormat(exceptionCode, e.getNickname(), e.fewStackTrace());
-            else
-                return ResponseEntity.status(exceptionCode.getHttpStatus())
-                        .body(ErrorResponse.builder()
-                                .code(exceptionCode.getCode())
-                                .message(exceptionCode.getMessage())
-                                .nicknameList(e.getNicknameList())
-                                .trace(e.fewStackTrace())
-                                .build());
-        } else {
-            log.error("Challenge exception: Code:{}, Message:{}, StackTrace:{}", e.getCode(), e.getMessage(), e.fewStackTrace());
-            return makeResponseFormat(exceptionCode, e.fewStackTrace());
-        }
-    }
-
-    @ExceptionHandler(ExerciseRecordException.class)
-    public ResponseEntity<ErrorResponse> handleExerciseRecordException(ExerciseRecordException e) {
-        log.error("ExerciseRecord exception: Code:{}, Message:{}, StackTrace:{}", e.getCode(), e.getMessage(), e.fewStackTrace());
-        return makeResponseFormat(e.getExceptionCode(), e.fewStackTrace());
-    }
-
-    @ExceptionHandler(KakaoException.class)
-    public ResponseEntity<ErrorResponse> handleCommonException(KakaoException e) {
-        log.error("WebClientException: Code:{} | message:{}", e.getCode(), e.getMessage());
-        return makeResponseFormat(e.getExceptionCode(), null);
-    }
-
-    //Default Exception
-    @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleSqlIntegrityException(SQLIntegrityConstraintViolationException e) {
-        List<String> trace = getFewTrace(e.getStackTrace());
-        log.error("SQLIntegrityConstraintViolationException: Code:{}, StackTrace:{}", ExceptionCodeSet.SQL_INTEGRITY_ERROR.getCode(), trace);
-        return makeResponseFormat(ExceptionCodeSet.SQL_INTEGRITY_ERROR, trace);
-    }
-
-    @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException e) {
-        ExceptionCodeSet exceptionByMsg = ExceptionCodeSet.findExceptionByMsg(e.getMessage());
-        List<String> trace = getFewTrace(e.getStackTrace());
-
-        if (exceptionByMsg != null) {
-            log.error("NullPointException: Code:{}, StackTrace:{}", exceptionByMsg.getCode(), trace);
-            return makeResponseFormat(exceptionByMsg, trace);
-        } else {
-            log.error("NullPointException: Code:{}, StackTrace:{}", ExceptionCodeSet.NULL_POINTER_ERROR.getCode(), trace);
-            return makeResponseFormat(ExceptionCodeSet.NULL_POINTER_ERROR, trace);
-        }
-    }
-
-    @ExceptionHandler(WebClientException.class)
-    public ResponseEntity<ErrorResponse> handleWebClientException(WebClientException e) {
-        List<String> trace = getFewTrace(e.getStackTrace());
-        log.error("WebClientException: Code:{}, StackTrace:{} | message:{}", ExceptionCodeSet.WEBCLIENT_ERROR.getCode(), trace, e.getMessage());
-        return makeResponseFormat(ExceptionCodeSet.WEBCLIENT_ERROR, trace);
-    }
-
-    @ExceptionHandler(ParseException.class)
-    public ResponseEntity<ErrorResponse> handleParseException(ParseException e) {
-        List<String> trace = getFewTrace(e.getStackTrace());
-        log.error("ParseException: Code:{}, StackTrace:{} | message:{}", ExceptionCodeSet.PARSE_EXCEPTION, trace, e.getMessage());
-        return makeResponseFormat(ExceptionCodeSet.PARSE_EXCEPTION, trace);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
-        e.printStackTrace();
-        List<String> trace = getFewTrace(e.getStackTrace());
-        log.error("Unexpected exception: Code:{}, StackTrace:{}", ExceptionCodeSet.INTERNAL_SERVER_ERROR.getCode(), trace);
-        return makeResponseFormat(ExceptionCodeSet.INTERNAL_SERVER_ERROR, trace);
-    }
-
-    /**
-     * 사전에 정의된 커스텀 예외에 대한 Response 생성
-     *
-     * @param exceptionCode
-     */
-    private ResponseEntity<ErrorResponse> makeResponseFormat(ExceptionCodeSet exceptionCode, List<String> trace) {
-        return ResponseEntity.status(exceptionCode.getHttpStatus())
-                .body(ErrorResponse.builder()
-                        .code(exceptionCode.getCode())
-                        .message(exceptionCode.getMessage())
-                        .trace(trace)
-                        .build()
-                );
-    }
-
-    /**
-     * 사전에 정의된 커스텀 예외 중, 회원-챌린지 간 예외에 대한 Response 생성
-     *
-     * @param exceptionCode
-     * @param nickname
-     */
-    public ResponseEntity<ErrorResponse> makeUCResponseFormat(ExceptionCodeSet exceptionCode, String nickname, List<String> trace) {
-        return ResponseEntity.status(exceptionCode.getHttpStatus())
-                .body(ErrorResponse.builder()
-                        .code(exceptionCode.getCode())
-                        .message(exceptionCode.getMessage())
-                        .nickname(nickname)
-                        .trace(trace)
-                        .build()
-                );
     }
 }
