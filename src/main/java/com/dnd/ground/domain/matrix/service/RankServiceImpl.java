@@ -1,9 +1,10 @@
 package com.dnd.ground.domain.matrix.service;
 
 import com.dnd.ground.domain.exerciseRecord.Repository.ExerciseRecordRepository;
-import com.dnd.ground.domain.exerciseRecord.dto.RankDto;
+import com.dnd.ground.domain.matrix.dto.RankDto;
 import com.dnd.ground.domain.friend.service.FriendService;
-import com.dnd.ground.domain.exerciseRecord.dto.RankCond;
+import com.dnd.ground.domain.matrix.dto.RankCond;
+import com.dnd.ground.domain.matrix.dto.UserRankDto;
 import com.dnd.ground.domain.user.User;
 import com.dnd.ground.domain.user.dto.RankResponseDto;
 import com.dnd.ground.domain.user.dto.UserRequestDto;
@@ -12,8 +13,10 @@ import com.dnd.ground.domain.user.repository.UserRepository;
 import com.dnd.ground.global.exception.CommonException;
 import com.dnd.ground.global.exception.ExceptionCodeSet;
 import com.dnd.ground.global.exception.UserException;
+import com.dnd.ground.global.redis.RedisTotalRankPipeline;
 import lombok.*;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +29,9 @@ import java.util.List;
  * @description 운동 영역 서비스 클래스
  * @author  박찬호
  * @since   2022-08-01
- * @updated 1. 특정 회원의 누적 랭킹 조회 추가
- *          - 2023.03.03
+ * @updated 1.누적 랭킹 조회 API 변경
+ *          2.본인의 누적 랭킹 조회 API 구현
+ *          - 2023-06-05 박찬호
  */
 
 @Service
@@ -37,17 +41,19 @@ public class RankServiceImpl implements RankService {
     private final UserRepository userRepository;
     private final FriendService friendService;
     private final ExerciseRecordRepository exerciseRecordRepository;
+    private final RedisTemplate<String, String> redisTemplateString;
 
-    //역대 누적 랭킹 조회
-    public RankResponseDto.Matrix matrixRankingAllTime(String nickname) {
-        User user = userRepository.findByNickname(nickname).orElseThrow(
-                () -> new UserException(ExceptionCodeSet.USER_NOT_FOUND));
+    //본인의 누적 랭킹 조회
+    public UserResponseDto.Ranking matrixRankingAllTime(String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new UserException(ExceptionCodeSet.USER_NOT_FOUND));
 
-        List<User> userAndFriends = friendService.getFriends(user);
-        userAndFriends.add(user);
-
-        List<RankDto> matrixRank = exerciseRecordRepository.findRankMatrixRankAllTime(new RankCond(userAndFriends));
-        return new RankResponseDto.Matrix(calculateUsersRank(matrixRank));
+        UserRankDto userRankDto = redisTemplateString.execute(new RedisTotalRankPipeline(nickname));
+        if (userRankDto == null || userRankDto.getRank() == null || userRankDto.getScore() == null) {
+            return new UserResponseDto.Ranking(0, user.getNickname(), 0L, user.getPicturePath());
+        } else {
+            return new UserResponseDto.Ranking(userRankDto.getRank() + 1, user.getNickname(), Math.round(userRankDto.getScore()), user.getPicturePath());
+        }
     }
 
     //특정 유저의 역대 누적 랭킹 조회
