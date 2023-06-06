@@ -16,22 +16,21 @@ import com.dnd.ground.global.exception.UserException;
 import com.dnd.ground.global.redis.RedisTotalRankPipeline;
 import lombok.*;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @description 운동 영역 서비스 클래스
  * @author  박찬호
  * @since   2022-08-01
- * @updated 1.누적 랭킹 조회 API 변경
- *          2.본인의 누적 랭킹 조회 API 구현
- *          - 2023-06-05 박찬호
+ * @updated 1.전체 누적 랭킹 조회 API 구현
+ *          - 2023-06-06 박찬호
  */
 
 @Service
@@ -42,6 +41,9 @@ public class RankServiceImpl implements RankService {
     private final FriendService friendService;
     private final ExerciseRecordRepository exerciseRecordRepository;
     private final RedisTemplate<String, String> redisTemplateString;
+
+    @Value("${picture.path}")
+    private String DEFAULT_PATH;
 
     //본인의 누적 랭킹 조회
     public UserResponseDto.Ranking matrixRankingAllTime(String nickname) {
@@ -56,13 +58,37 @@ public class RankServiceImpl implements RankService {
         }
     }
 
-    //특정 유저의 역대 누적 랭킹 조회
-    public UserResponseDto.Ranking matrixUserRankingAllTime(User user) {
-        List<User> userAndFriends = friendService.getFriends(user);
-        userAndFriends.add(user);
+    //누적 랭킹 조회
+    public RankResponseDto.Matrix matrixRankingAllTime(int offset, int size) {
+        final String TOTAL_RANK = "totalRank";
+        int rank = offset;
+        double prevScore = Double.MAX_VALUE;
+        int interval = 1;
+        String picturePath;
 
-        List<RankDto> matrixRank = exerciseRecordRepository.findRankMatrixRankAllTime(new RankCond(userAndFriends));
-        return calculateUserRank(matrixRank, user);
+        List<UserResponseDto.Ranking> rankings = new ArrayList<>();
+        Set<ZSetOperations.TypedTuple<String>> tuples = redisTemplateString.opsForZSet().reverseRangeWithScores(TOTAL_RANK, offset, offset + size - 1);
+
+        for (ZSetOperations.TypedTuple<String> tuple : tuples) {
+            String nickname = tuple.getValue();
+            Double score = tuple.getScore();
+            if (score == null) score = prevScore;
+
+            Optional<User> opt = userRepository.findByNickname(nickname);
+            if (opt.isPresent()) picturePath = opt.get().getPicturePath();
+            else picturePath = DEFAULT_PATH;
+
+            if (prevScore <= score) interval++;
+            else {
+                prevScore = score;
+                rank += interval;
+                interval = 1;
+            }
+
+            rankings.add(new UserResponseDto.Ranking(rank, nickname, Math.round(score), picturePath));
+        }
+
+        return new RankResponseDto.Matrix(rankings);
     }
 
     //영역 랭킹 조회

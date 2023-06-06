@@ -54,8 +54,8 @@ import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
  * @description 유저 서비스 클래스
  * @author 박세헌, 박찬호
  * @since 2022-08-01
- * @updated 1.친구 추천 목록 제외 필터 조회 API 구현
- *          - 2023-05-25 박찬호
+ * @updated 1.친구 프로필 조회 시, 전체 랭킹을 조회하는 메소드 변경
+ *          - 2023-06-06 박찬호
  */
 
 @Slf4j
@@ -221,7 +221,7 @@ public class UserServiceImpl implements UserService {
         FriendStatus isFriend = friendService.getFriendStatus(user, friend);
 
         //랭킹 추출 (이번 주 영역, 역대 누적 칸수, 랭킹)
-        UserResponseDto.Ranking rankInfo = matrixService.matrixUserRankingAllTime(friend);
+        UserResponseDto.Ranking rankInfo = matrixService.matrixRankingAllTime(friend.getNickname());
         int rank = rankInfo.getRank();
         long allMatrixNumber = rankInfo.getScore();
 
