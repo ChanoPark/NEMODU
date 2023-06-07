@@ -1,14 +1,10 @@
 package com.dnd.ground.domain.challenge.repository;
 
 import com.dnd.ground.domain.challenge.*;
-import com.dnd.ground.domain.challenge.dto.ChallengeColorDto;
-import com.dnd.ground.domain.challenge.dto.ChallengeCond;
-import com.dnd.ground.domain.challenge.dto.QUCDto_UCInfo;
-import com.dnd.ground.domain.challenge.dto.UCDto;
+import com.dnd.ground.domain.challenge.dto.*;
 import com.dnd.ground.domain.user.User;
 import com.dnd.ground.global.util.UuidUtil;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -18,11 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.dnd.ground.domain.challenge.QChallenge.challenge;
 import static com.dnd.ground.domain.challenge.QUserChallenge.userChallenge;
 import static com.dnd.ground.domain.user.QUser.user;
+import static com.dnd.ground.domain.user.QUserProperty.userProperty;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 
@@ -30,8 +28,8 @@ import static com.querydsl.core.group.GroupBy.list;
  * @description QueryDSL을 활용한 챌린지 관련 구현체
  * @author 박찬호
  * @since 2023-02-15
- * @updated 1.챌린지 개수 조회 쿼리 수정
- *          - 2023.03.13 박찬호
+ * @updated 1.챌린지 목록 페이징 쿼리 추가
+ *          - 2023.06.06 박찬호
  */
 @RequiredArgsConstructor
 @Slf4j
@@ -46,28 +44,30 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
                 .select(userChallenge.user)
                 .from(userChallenge)
                 .innerJoin(challenge)
-                .on(
-                        eqChallengeAndStatus(ChallengeStatus.PROGRESS),
-                        containUserInChallenge(user)
+                .on(userChallenge.challenge.eq(challenge))
+                .where(
+                        containUserInChallenge(user),
+                        eqChallengeStatusList(List.of(ChallengeStatus.PROGRESS, ChallengeStatus.MASTER_PROGRESS)),
+                        userChallenge.user.ne(user)
                 )
-                .where(userChallenge.user.ne(user))
                 .distinct()
                 .fetch();
     }
 
     /*진행 중인 챌린지 개수 조회*/
     @Override
-    public Map<User, Long> findUsersProgressChallengeCount(User user) {
+    public Map<User, Long> findUserProgressChallengeCount(User user) {
         return queryFactory
                 .select(userChallenge.count(),
                         userChallenge.user)
                 .from(userChallenge)
                 .innerJoin(challenge)
-                .on(
-                        eqChallengeAndStatus(ChallengeStatus.PROGRESS),
-                        containUserInChallenge(user)
+                .on(userChallenge.challenge.eq(challenge))
+                .where(
+                        eqChallengeStatusList(List.of(ChallengeStatus.PROGRESS, ChallengeStatus.MASTER_PROGRESS)),
+                        containUserInChallenge(user),
+                        userChallenge.user.ne(user)
                 )
-                .where(userChallenge.user.ne(user))
                 .groupBy(userChallenge.user)
                 .transform(groupBy(userChallenge.user).as(userChallenge.count()));
     }
@@ -79,11 +79,12 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
                 .select(userChallenge.user, userChallenge.challenge)
                 .from(userChallenge)
                 .innerJoin(challenge)
-                .on(
-                        eqChallengeAndStatus(ChallengeStatus.PROGRESS),
-                        containUserInChallenge(user)
+                .on(userChallenge.challenge.eq(challenge))
+                .where(
+                        eqChallengeStatusList(List.of(ChallengeStatus.PROGRESS, ChallengeStatus.MASTER_PROGRESS)),
+                        containUserInChallenge(user),
+                        userChallenge.user.ne(user)
                 )
-                .where(userChallenge.user.ne(user))
                 .orderBy(challenge.started.asc())
                 .transform(groupBy(userChallenge.user).as(userChallenge.challenge));
     }
@@ -92,34 +93,63 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
     @Override
     public Map<Challenge, ChallengeColor> findChallengesColor(ChallengeCond condition) {
         return queryFactory
-                .select(Projections.constructor(ChallengeColorDto.class,
-                                userChallenge.challenge,
-                                userChallenge.color
-                        )
-                )
+                .select(new QChallengeColorDto(userChallenge.challenge, userChallenge.color))
                 .from(userChallenge)
                 .innerJoin(challenge)
-                .on(eqChallengeAndStatus(condition.getStatus()))
-                .where(userChallenge.user.eq(condition.getUser()))
+                .on(userChallenge.challenge.eq(challenge))
+                .where(
+                        userChallenge.user.eq(condition.getUser()),
+                        eqChallengeStatusList(condition.getStatusList())
+                )
                 .transform(
                         groupBy(challenge).as(userChallenge.color)
                 );
     }
 
 
-    /*진행 중인 챌린지 개수 조회*/
+    /*참여 중인 챌린지 개수 조회*/
     @Override
-    public Map<User, Long> findUsersProgressChallengeCount(Set<String> users) {
+    public Map<User, Long> findUsersJoinChallengeCount(Set<String> users) {
         return queryFactory
                 .from(user)
+                .innerJoin(userProperty)
+                .on(user.property.eq(userProperty))
+                .fetchJoin()
                 .leftJoin(userChallenge)
                 .on(
                         userChallenge.user.eq(user),
-                        userChallenge.status.in(ChallengeStatus.PROGRESS, ChallengeStatus.MASTER)
+                        userChallenge.status.in(
+                                ChallengeStatus.READY,
+                                ChallengeStatus.MASTER,
+                                ChallengeStatus.PROGRESS,
+                                ChallengeStatus.MASTER_PROGRESS)
                 )
                 .where(user.nickname.in(users))
                 .groupBy(user)
                 .transform(groupBy(user).as(userChallenge.count()));
+    }
+
+    @Override
+    public Integer findUserJoinChallengeCount(User target) {
+        return queryFactory
+                .select(user.count())
+                .from(user)
+                .innerJoin(userProperty)
+                .on(user.property.eq(userProperty))
+                .fetchJoin()
+                .leftJoin(userChallenge)
+                .on(
+                        userChallenge.user.eq(user),
+                        userChallenge.status.in(
+                                ChallengeStatus.READY,
+                                ChallengeStatus.MASTER,
+                                ChallengeStatus.PROGRESS,
+                                ChallengeStatus.MASTER_PROGRESS)
+                )
+                .where(user.eq(target))
+                .groupBy(user)
+                .fetch()
+                .size();
     }
 
     /*조건에 따른 조회*/
@@ -128,10 +158,9 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
         return queryFactory
                 .selectFrom(challenge)
                 .innerJoin(userChallenge)
-                .on(
-                        eqChallengeAndStatus(condition.getStatus())
-                )
+                .on(userChallenge.challenge.eq(challenge))
                 .where(
+                        eqChallengeStatusList(condition.getStatusList()),
                         userChallenge.user.eq(condition.getUser()),
                         inPeriod(condition.getStarted(), condition.getEnded())
                 )
@@ -139,22 +168,44 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
                 .fetch();
     }
 
+    @Override
+    public List<Challenge> findChallengesPageByCond(ChallengeCond condition) {
+        return queryFactory
+                .selectFrom(challenge)
+                .innerJoin(userChallenge)
+                .on(userChallenge.challenge.eq(challenge))
+                .where(
+                        challengeIdLt(condition.getId()),
+                        eqChallengeStatusList(condition.getStatusList()),
+                        userChallenge.user.eq(condition.getUser()),
+                        inPeriod(condition.getStarted(), condition.getEnded())
+                )
+                .orderBy(
+                        challenge.created.asc(),
+                        challenge.id.desc()
+                )
+                .limit(condition.getSize() + 1)
+                .fetch();
+    }
+
     /*닉네임과 UUID를 기반으로 UC조회*/
     @Override
-    public UserChallenge findUC(String nickname, String uuid) {
-        return queryFactory
+    public Optional<UserChallenge> findUC(String nickname, String uuid) {
+        return Optional.ofNullable(queryFactory
                 .selectFrom(userChallenge)
                 .innerJoin(challenge)
                 .on(
                         userChallenge.challenge.eq(challenge),
                         challenge.uuid.eq(UuidUtil.hexToBytes(uuid))
                 )
+                .fetchJoin()
                 .innerJoin(user)
                 .on(
                         userChallenge.user.eq(user),
                         user.nickname.eq(nickname)
                 )
-                .fetchOne();
+                .fetchJoin()
+                .fetchOne());
     }
 
     /*챌린지 상태에 따라, 챌린지와 챌린지에 참여하고 있는 인원의 UC 조회*/
@@ -166,7 +217,7 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
                 .from(challenge)
                 .innerJoin(userChallenge)
                 .on(
-                        eqChallengeAndStatus(condition.getStatus()),
+                        userChallenge.challenge.eq(challenge),
                         userChallenge.challenge.in(
                                 JPAExpressions
                                         .select(subUC.challenge)
@@ -177,6 +228,7 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
                 .innerJoin(user)
                 .on(user.eq(userChallenge.user))
                 .where(
+                        eqChallengeStatusList(condition.getStatusList()),
                         ucEqChallengeUuid(condition.getUuid())
                 )
                 .orderBy(challenge.created.asc())
@@ -187,8 +239,32 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
                 );
     }
 
+    @Override
+    public List<ChallengeUcsDto> findChallengeUcs(User user) {
+        QChallenge subChallenge = new QChallenge("subChallenge");
+        QUserChallenge subUC = new QUserChallenge("subUC");
+
+        return queryFactory
+                .select(new QChallengeUcsDto(challenge, list(userChallenge)))
+                .from(userChallenge)
+                .innerJoin(challenge)
+                .on(userChallenge.challenge.eq(challenge))
+                .where(
+                        userChallenge.challenge.in(
+                                JPAExpressions
+                                        .selectFrom(subChallenge)
+                                        .innerJoin(subUC)
+                                        .on(
+                                                subUC.challenge.eq(subChallenge),
+                                                subUC.user.eq(user)
+                                        )
+                        )
+                )
+                .transform(groupBy(challenge).list(new QChallengeUcsDto(challenge, list(userChallenge))));
+    }
+
     private Predicate inPeriod(LocalDateTime started, LocalDateTime ended) {
-        return started != null && ended != null ? challenge.started.goe(started).and(challenge.ended.loe(ended)) : null;
+        return started != null && ended != null ? challenge.started.loe(started).and(challenge.ended.goe(ended)) : null;
     }
 
     private BooleanExpression containUserInChallenge(User user) {
@@ -203,11 +279,15 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
                 null;
     }
 
-    private BooleanExpression eqChallengeAndStatus(ChallengeStatus status) {
-        return status != null ? userChallenge.challenge.eq(challenge).and(challenge.status.eq(status)) : userChallenge.challenge.eq(challenge);
-    }
-
     private BooleanExpression ucEqChallengeUuid(byte[] uuid) {
         return uuid != null ? userChallenge.challenge.uuid.eq(uuid) : null;
+    }
+
+    private BooleanExpression eqChallengeStatusList(List<ChallengeStatus> statusList) {
+        return statusList != null ? challenge.status.in(statusList) : null;
+    }
+
+    private BooleanExpression challengeIdLt(Long id) {
+        return id != null ? challenge.id.lt(id) : null;
     }
 }

@@ -14,8 +14,8 @@ import java.util.List;
  * @description 챌린지와 관련된 서비스의 역할을 분리한 인터페이스
  * @author  박찬호
  * @since   2022-08-03
- * @updated 1. 회원 탈퇴 API 구현 - 참여 중인 챌린지를 삭제된 유저로 변환
- *          - 2023.05.22 박찬호
+ * @updated 1.초대 받은 챌린지 페이징 적용
+ *          2023-06-06 박찬호
  */
 
 public interface ChallengeService {
@@ -27,7 +27,7 @@ public interface ChallengeService {
     List<ChallengeResponseDto.Progress> findProgressChallenge(String nickname);
     List<ChallengeResponseDto.Progress> findProgressChallenge(String userNickname, String friendNickname);
     List<ChallengeResponseDto.Done> findDoneChallenge(String nickname);
-    List<ChallengeResponseDto.Invite> findInviteChallenge(String nickname);
+    ChallengeInviteListResponseDto findInviteChallenge(Long id, Integer size, String nickname);
     ChallengeResponseDto.WaitDetail getDetailWaitChallenge(ChallengeRequestDto.CInfo requestDto);
     ChallengeResponseDto.Detail getDetailProgressOrDone(ChallengeRequestDto.CInfo requestDto);
     ChallengeMapResponseDto.DetailMap getChallengeDetailMap(String uuid, String nickname, Double spanDelta, Location center);

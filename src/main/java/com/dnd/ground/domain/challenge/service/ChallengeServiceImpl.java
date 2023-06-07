@@ -6,7 +6,7 @@ import com.dnd.ground.domain.challenge.repository.ChallengeRepository;
 import com.dnd.ground.domain.challenge.repository.UserChallengeRepository;
 import com.dnd.ground.domain.exerciseRecord.ExerciseRecord;
 import com.dnd.ground.domain.exerciseRecord.Repository.ExerciseRecordRepository;
-import com.dnd.ground.domain.exerciseRecord.dto.RankDto;
+import com.dnd.ground.domain.matrix.dto.RankDto;
 import com.dnd.ground.domain.matrix.dto.Location;
 import com.dnd.ground.domain.matrix.dto.MatrixCond;
 import com.dnd.ground.domain.matrix.repository.MatrixRepository;
@@ -34,11 +34,8 @@ import java.util.stream.Collectors;
  * @author 박찬호
  * @description 챌린지와 관련된 서비스의 역할을 분리한 구현체
  * @since 2022-08-03
- * @updated 1.챌린지 상세조회 반환할 때, center(latitude, longitude) 추가. (영역이 가장 많은 운동 기록의 가운데)
- *          2.챌린지 상태변경 시 최대 개수를 넘지 않도록 예외처리
- *          3.회원 탈퇴 API 구현 - 해당 멤버를 삭제된 유저로 변환
- *          4. 회원 탈퇴 API 구현 - 참여 중인 챌린지를 삭제된 유저로 변환
- *          - 2023.05.22 박찬호
+ * @updated 1.초대 받은 챌린지 페이징 적용
+ *          2023-06-06 박찬호
  */
 
 @Slf4j
@@ -147,14 +144,13 @@ public class ChallengeServiceImpl implements ChallengeService {
     public ChallengeResponseDto.Status changeUserChallengeStatus(ChallengeRequestDto.CInfo requestDto, ChallengeStatus status) {
         User user = userRepository.findByNickname(requestDto.getNickname())
                 .orElseThrow(() -> new UserException(ExceptionCodeSet.USER_NOT_FOUND));
-        UserChallenge userChallenge = challengeRepository.findUC(requestDto.getNickname(), requestDto.getUuid());
 
-        if (userChallenge == null) throw new ChallengeException(ExceptionCodeSet.NOT_FOUND_UC);
-        else if (userChallenge.getStatus() == ChallengeStatus.MASTER) { //주최자의 상태 변경X
-            throw new ChallengeException(ExceptionCodeSet.MASTER_STATUS_NOT_CHANGE, requestDto.getNickname());
-        }
+        UserChallenge userChallenge = challengeRepository.findUC(requestDto.getNickname(), requestDto.getUuid())
+                .orElseThrow(() -> new ChallengeException(ExceptionCodeSet.NOT_FOUND_UC));
 
-        if (status == ChallengeStatus.READY && MAX_CHALLENGE_COUNT < challengeRepository.findUserJoinChallengeCount(user)) {
+        if (userChallenge.getStatus() == ChallengeStatus.MASTER) { //주최자의 상태 변경X
+            throw new ChallengeException(ExceptionCodeSet.MASTER_STATUS_NOT_CHANGE, user);
+        } else if (status == ChallengeStatus.READY && MAX_CHALLENGE_COUNT < challengeRepository.findUserJoinChallengeCount(user)) {
             throw new ChallengeException(ExceptionCodeSet.CHALLENGE_EXCEED);
         }
 
@@ -181,17 +177,17 @@ public class ChallengeServiceImpl implements ChallengeService {
     }
 
     /*초대 받은 챌린지 목록 조회*/
-    public List<ChallengeResponseDto.Invite> findInviteChallenge(String nickname) {
+    public ChallengeInviteListResponseDto findInviteChallenge(Long id, Integer size, String nickname) {
         User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new UserException(ExceptionCodeSet.USER_NOT_FOUND));
 
-        List<Challenge> challenges = challengeRepository.findChallengesByCond(new ChallengeCond(user, List.of(ChallengeStatus.WAIT)));
-        List<ChallengeResponseDto.Invite> response = new ArrayList<>();
+        List<Challenge> challenges = challengeRepository.findChallengesPageByCond(new ChallengeCond(id, size, user, List.of(ChallengeStatus.WAIT)));
 
+        List<ChallengeResponseDto.Invite> infos = new ArrayList<>();
         for (Challenge challenge : challenges) {
             User master = userChallengeRepository.findMasterInChallenge(challenge);
 
-            response.add(
+            infos.add(
                     ChallengeResponseDto.Invite.builder()
                             .name(challenge.getName())
                             .uuid(UuidUtil.bytesToHex(challenge.getUuid()))
@@ -203,7 +199,11 @@ public class ChallengeServiceImpl implements ChallengeService {
             );
         }
 
-        return response;
+        boolean isLast = challenges.size() <= size;
+        if (!isLast) challenges.remove(challenges.size() - 1);
+        Long nextOffset = isLast ? null : challenges.get(challenges.size() - 1).getId();
+
+        return new ChallengeInviteListResponseDto(infos, infos.size(), isLast, nextOffset);
     }
 
     /*진행 대기 중인 챌린지 리스트 조회*/
@@ -509,10 +509,10 @@ public class ChallengeServiceImpl implements ChallengeService {
                 () -> new UserException(ExceptionCodeSet.USER_NOT_FOUND));
 
         Challenge challenge = challengeRepository.findByUuid(UuidUtil.hexToBytes(request.getUuid()))
-                .orElseThrow(() -> new ChallengeException(ExceptionCodeSet.CHALLENGE_NOT_FOUND, user.getNickname()));
+                .orElseThrow(() -> new ChallengeException(ExceptionCodeSet.CHALLENGE_NOT_FOUND, user));
 
         UserChallenge userChallenge = userChallengeRepository.findByUserAndChallenge(user, challenge)
-                .orElseThrow(() -> new ChallengeException(ExceptionCodeSet.USER_CHALLENGE_NOT_FOUND, user.getNickname()));
+                .orElseThrow(() -> new ChallengeException(ExceptionCodeSet.USER_CHALLENGE_NOT_FOUND, user));
 
         //주최자만 삭제 가능.
         if (userChallenge.getStatus() != ChallengeStatus.MASTER) {
