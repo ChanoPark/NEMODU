@@ -1,14 +1,23 @@
 package com.dnd.ground.common;
 
+import com.dnd.ground.domain.challenge.ChallengeType;
+import com.dnd.ground.domain.challenge.dto.ChallengeCreateRequestDto;
+import com.dnd.ground.domain.challenge.service.ChallengeService;
 import com.dnd.ground.domain.user.LoginType;
 import com.dnd.ground.domain.user.User;
 import com.dnd.ground.domain.user.UserProperty;
 import com.dnd.ground.domain.user.repository.UserRepository;
+import com.dnd.ground.global.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Configuration
 public class DataProvider {
@@ -16,13 +25,20 @@ public class DataProvider {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    ChallengeService challengeService;
+
     @Value("${picture.path}")
     private String DEFAULT_PATH;
 
     @Value("${picture.name}")
     private String DEFAULT_NAME;
 
+    private static final double LATITUDE = 37.334501;
+    private static final double LONGITUDE = 126.810133;
+
     public void createUser(int size) {
+
         for (int i = 1; i <= size; i++) {
             User user = User.builder()
                     .nickname("nick" + i)
@@ -31,6 +47,8 @@ public class DataProvider {
                     .created(LocalDateTime.now())
                     .pictureName(DEFAULT_NAME)
                     .picturePath(DEFAULT_PATH)
+                    .latitude(LATITUDE + (0.3740 * i))
+                    .longitude(LONGITUDE + (0.3040 * i))
                     .loginType(i % 2 == 0 ? LoginType.APPLE : LoginType.KAKAO)
                     .build();
 
@@ -54,5 +72,56 @@ public class DataProvider {
             user.setUserProperty(property);
             userRepository.save(user);
         }
+    }
+
+    public String getAccessToken() {
+        User testDummyUser = userRepository.findByNickname("TEST_DUMMY")
+                .orElseGet(() -> {
+                    User user = User.builder()
+                            .nickname("TEST_DUMMY")
+                            .email("TEST_DUMMY" + "@gmail.com")
+                            .intro("TEST_DUMMY" + "의 소개 메시지")
+                            .created(LocalDateTime.now())
+                            .pictureName(DEFAULT_NAME)
+                            .picturePath(DEFAULT_PATH)
+                            .latitude(LATITUDE)
+                            .longitude(LONGITUDE)
+                            .loginType(LoginType.KAKAO)
+                            .build();
+
+                    UserProperty property = UserProperty.builder()
+                            .socialId("TEST_DUMMY")
+                            .isExceptRecommend(false)
+                            .isShowMine(false)
+                            .isShowFriend(false)
+                            .isPublicRecord(false)
+                            .notiWeekStart(false)
+                            .notiWeekEnd(false)
+                            .notiFriendRequest(false)
+                            .notiFriendAccept(true)
+                            .notiChallengeRequest(false)
+                            .notiChallengeAccept(false)
+                            .notiChallengeStart(false)
+                            .notiChallengeCancel(false)
+                            .notiChallengeResult(false)
+                            .build();
+
+                    user.setUserProperty(property);
+                    return userRepository.save(user);
+                });
+
+        return JwtUtil.createAccessToken(testDummyUser.getEmail(), LocalDateTime.now());
+    }
+
+    @Transactional
+    public void createChallenge(String masterNickname, String member1Nickname, String member2Nickname,
+                                String challengeName, String message, ChallengeType type, LocalDateTime started) {
+        Set<String> members = new HashSet<>();
+        if (member1Nickname != null) members.add(member1Nickname);
+        if (member2Nickname != null) members.add(member2Nickname);
+
+        started = started != null ? started : LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
+
+        challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
     }
 }
