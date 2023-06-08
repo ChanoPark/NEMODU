@@ -53,7 +53,7 @@ public class ChallengeControllerImpl implements ChallengeController {
     @GetMapping("/invite")
     @Operation(summary = "초대받은 챌린지 목록", description = "초대 받은 챌린지와 관련한 정보 목록")
     public ResponseEntity<ChallengeInviteListResponseDto> getInviteChallenges(@ModelAttribute ChallengeRequestDto.ChallengePageRequest request) {
-        return ResponseEntity.ok().body(challengeService.findInviteChallenge(request.getId(), request.getSize(), request.getNickname()));
+        return ResponseEntity.ok().body(challengeService.findInviteChallenge(request.getOffset(), request.getSize(), request.getNickname()));
     }
 
     @GetMapping("/wait")

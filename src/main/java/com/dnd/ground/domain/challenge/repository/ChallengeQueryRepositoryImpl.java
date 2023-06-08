@@ -181,7 +181,7 @@ public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
                         inPeriod(condition.getStarted(), condition.getEnded())
                 )
                 .orderBy(
-                        challenge.created.asc(),
+                        challenge.created.desc(),
                         challenge.id.desc()
                 )
                 .limit(condition.getSize() + 1)

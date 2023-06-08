@@ -191,17 +191,17 @@ public class ChallengeServiceImpl implements ChallengeService {
                     ChallengeResponseDto.Invite.builder()
                             .name(challenge.getName())
                             .uuid(UuidUtil.bytesToHex(challenge.getUuid()))
-                            .InviterNickname(master.getNickname())
+                            .inviterNickname(master.getNickname())
                             .message(challenge.getMessage())
-                            .created(challenge.getCreated().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                            .created(challenge.getCreated())
                             .picturePath(master.getPicturePath())
                             .build()
             );
         }
 
-        boolean isLast = challenges.size() <= size;
-        if (!isLast) challenges.remove(challenges.size() - 1);
-        Long nextOffset = isLast ? null : challenges.get(challenges.size() - 1).getId();
+        boolean isLast = infos.size() <= size;
+        if (!isLast) infos.remove(infos.size() - 1);
+        Long nextOffset = isLast ? null : challenges.get(infos.size() - 1).getId();
 
         return new ChallengeInviteListResponseDto(infos, infos.size(), isLast, nextOffset);
     }
