@@ -1,10 +1,10 @@
-package com.dnd.ground.domain.exerciseRecord.Repository;
+package com.dnd.ground.domain.matrix.repository;
 
 import com.dnd.ground.domain.challenge.*;
 import com.dnd.ground.domain.exerciseRecord.ExerciseRecord;
 
-import com.dnd.ground.domain.exerciseRecord.dto.RankCond;
-import com.dnd.ground.domain.exerciseRecord.dto.RankDto;
+import com.dnd.ground.domain.matrix.dto.RankCond;
+import com.dnd.ground.domain.matrix.dto.RankDto;
 import com.dnd.ground.domain.user.User;
 import com.dnd.ground.global.exception.ExceptionCodeSet;
 import com.dnd.ground.global.exception.ExerciseRecordException;
@@ -19,9 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
-import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 
@@ -37,8 +35,8 @@ import static com.querydsl.core.group.GroupBy.list;
  * @description 운동 기록(영역) 관련 QueryDSL 레포지토리
  * @author  박찬호
  * @since   2022-08-01
- * @updated 1.챌린지 관련 랭킹 조회 쿼리 수정
- *          2023-03-13 박찬호
+ * @updated 1.챌린지 랭킹 조회 페이징 쿼리 추가
+ *          2023-06-09 박찬호
  */
 
 @Repository
@@ -47,17 +45,14 @@ import static com.querydsl.core.group.GroupBy.list;
 public class RankQueryRepositoryImpl implements RankQueryRepository {
     private final JPAQueryFactory queryFactory;
 
-    // 개인 이번주 기록 (이번주 월요일 ~ 지금)
-    public List<ExerciseRecord> findRecordOfThisWeek(Long id){
-        LocalDateTime result = LocalDateTime.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDateTime start = LocalDateTime.of(result.getYear(), result.getMonth(), result.getDayOfMonth(), 0, 0, 0);
-        return findRecord(id, start, LocalDateTime.now());
-    }
-
     public List<ExerciseRecord> findRecord(Long id, LocalDateTime start, LocalDateTime end){
         return queryFactory
                 .select(exerciseRecord)
                 .from(exerciseRecord)
+                .distinct()
+                .innerJoin(matrix)
+                .on(matrix.exerciseRecord.eq(exerciseRecord))
+                .fetchJoin()
                 .where(
                         exerciseRecord.user.id.eq(id),
                         exerciseRecord.started.between(start, end)
@@ -73,8 +68,10 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
      * @param condition 검색 조건
      * @return 랭킹 결과
      */
-    private List<RankDto> execQuery(ConstructorExpression<RankDto> constructor, OrderSpecifier<Long> order,
-                                    BooleanExpression tableJoinCondition, RankCond condition) {
+    private List<RankDto> execQuery(ConstructorExpression<RankDto> constructor,
+                                    OrderSpecifier<Long> order,
+                                    BooleanExpression tableJoinCondition,
+                                    RankCond condition) {
         return queryFactory
                 .select(constructor)
                 .from(user)
@@ -141,7 +138,7 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
     }
 
     @Override
-    public Map<Challenge, List<RankDto>> findChallengeMatrixRank(User targetUser, ChallengeStatus status) {
+    public Map<Challenge, List<RankDto>> findChallengeMatrixRank(User targetUser, List<ChallengeStatus> status) {
         QChallenge subChallenge = new QChallenge("subChallenge");
         QUserChallenge subUC = new QUserChallenge("subUC");
 
@@ -162,7 +159,7 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
                 .innerJoin(challenge)
                 .on(
                         userChallenge.challenge.eq(challenge),
-                        challenge.status.eq(status),
+                        challenge.status.in(status),
                         challenge.in(
                                 JPAExpressions
                                         .selectFrom(subChallenge)
@@ -183,6 +180,77 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
                 .on(matrix.exerciseRecord.eq(exerciseRecord))
                 .groupBy(challenge, user.nickname)
                 .orderBy(challenge.started.asc())
+                .transform(
+                        groupBy(challenge).as(
+                                list(Projections.constructor(RankDto.class,
+                                        user.nickname,
+                                        user.picturePath,
+                                        new CaseBuilder()
+                                                .when(challenge.type.eq(ChallengeType.ACCUMULATE))
+                                                .then(matrix.count())
+                                                .when(challenge.type.eq(ChallengeType.WIDEN))
+                                                .then(matrix.point.countDistinct())
+                                                .otherwise(0L)
+                                ))
+                        )
+                );
+    }
+
+    @Override
+    public Map<Challenge, List<RankDto>> findChallengeMatrixRankPage(User targetUser, List<ChallengeStatus> status, Long offset, int size) {
+        QChallenge subChallenge = new QChallenge("subChallenge");
+        QUserChallenge subUC = new QUserChallenge("subUC");
+
+        return queryFactory
+                .select(
+                        user.nickname,
+                        user.picturePath,
+                        challenge.type,
+                        new CaseBuilder()
+                                .when(challenge.type.eq(ChallengeType.ACCUMULATE))
+                                .then(matrix.count())
+                                .when(challenge.type.eq(ChallengeType.WIDEN))
+                                .then(matrix.point.countDistinct())
+                                .otherwise(0L))
+                .distinct()
+                .from(user)
+                .innerJoin(userChallenge)
+                .on(userChallenge.user.eq(user))
+                .innerJoin(challenge)
+                .on(
+                        userChallenge.challenge.eq(challenge),
+                        challenge.status.in(status),
+                        challenge.in(
+                                JPAExpressions
+                                        .selectFrom(subChallenge)
+                                        .innerJoin(subUC)
+                                        .on(
+                                                subUC.challenge.eq(subChallenge),
+                                                subUC.user.eq(targetUser)
+                                        )
+                        )
+                )
+                .leftJoin(exerciseRecord)
+                .on(
+                        exerciseRecord.user.eq(user),
+                        exerciseRecord.started.goe(challenge.started),
+                        exerciseRecord.ended.loe(challenge.ended)
+                )
+                .leftJoin(matrix)
+                .on(matrix.exerciseRecord.eq(exerciseRecord))
+                .where(
+                        userEq(targetUser),
+                        challengeIdLt(offset)
+                )
+                .groupBy(
+                        challenge,
+                        user.nickname
+                )
+                .orderBy(
+                        challenge.started.desc(),
+                        challenge.id.desc()
+                )
+                .limit(size + 1)
                 .transform(
                         groupBy(challenge).as(
                                 list(Projections.constructor(RankDto.class,
@@ -310,5 +378,13 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
     private BooleanExpression allTime() {
         return exerciseRecord.started.after(user.created)
                 .and(exerciseRecord.ended.before(LocalDateTime.now()));
+    }
+
+    private BooleanExpression challengeIdLt(Long id) {
+        return id != null ? challenge.id.lt(id) : null;
+    }
+
+    private BooleanExpression userEq(User target) {
+        return target != null ? user.eq(target) : null;
     }
 }

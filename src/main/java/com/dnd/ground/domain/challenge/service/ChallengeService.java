@@ -14,8 +14,8 @@ import java.util.List;
  * @description 챌린지와 관련된 서비스의 역할을 분리한 인터페이스
  * @author  박찬호
  * @since   2022-08-03
- * @updated 1.초대 받은 챌린지 페이징 적용
- *          2023-06-06 박찬호
+ * @updated 1.완료된 챌린지 목록 페이징 적용
+ *          2023-06-09 박찬호
  */
 
 public interface ChallengeService {
@@ -26,8 +26,8 @@ public interface ChallengeService {
     List<ChallengeResponseDto.Wait> findWaitChallenge(String nickname);
     List<ChallengeResponseDto.Progress> findProgressChallenge(String nickname);
     List<ChallengeResponseDto.Progress> findProgressChallenge(String userNickname, String friendNickname);
-    List<ChallengeResponseDto.Done> findDoneChallenge(String nickname);
-    ChallengeInviteListResponseDto findInviteChallenge(Long id, Integer size, String nickname);
+    ChallengeDoneListResponseDto findDoneChallenge(Long offset, Integer size, String nickname);
+    ChallengeInviteListResponseDto findInviteChallenge(Long offset, Integer size, String nickname);
     ChallengeResponseDto.WaitDetail getDetailWaitChallenge(ChallengeRequestDto.CInfo requestDto);
     ChallengeResponseDto.Detail getDetailProgressOrDone(ChallengeRequestDto.CInfo requestDto);
     ChallengeMapResponseDto.DetailMap getChallengeDetailMap(String uuid, String nickname, Double spanDelta, Location center);

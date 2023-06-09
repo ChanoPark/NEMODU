@@ -19,8 +19,8 @@ import java.util.List;
  * @description 챌린지와 관련된 컨트롤러 구현체
  * @author  박찬호
  * @since   2022-08-01
- * @updated 1.초대 받은 챌린지 페이징 적용
- *          2023-06-06 박찬호
+ * @updated 1.완료된 챌린지 목록 페이징 적용
+ *          2023-06-09 박찬호
  */
 
 @Api(tags = "챌린지")
@@ -52,7 +52,7 @@ public class ChallengeControllerImpl implements ChallengeController {
 
     @GetMapping("/invite")
     @Operation(summary = "초대받은 챌린지 목록", description = "초대 받은 챌린지와 관련한 정보 목록")
-    public ResponseEntity<ChallengeInviteListResponseDto> getInviteChallenges(@ModelAttribute ChallengeRequestDto.ChallengePageRequest request) {
+    public ResponseEntity<ChallengeInviteListResponseDto> getInviteChallenges(@Valid @ModelAttribute ChallengeRequestDto.ChallengePageRequest request) {
         return ResponseEntity.ok().body(challengeService.findInviteChallenge(request.getOffset(), request.getSize(), request.getNickname()));
     }
 
@@ -70,8 +70,8 @@ public class ChallengeControllerImpl implements ChallengeController {
 
     @GetMapping("/done")
     @Operation(summary = "완료된 챌린지 목록 조회", description = "완료된 챌린지 목록+현재 순위")
-    public ResponseEntity<List<ChallengeResponseDto.Done>> getDoneChallenges(@RequestParam("nickname") String nickname) {
-        return ResponseEntity.ok().body(challengeService.findDoneChallenge(nickname));
+    public ResponseEntity<ChallengeDoneListResponseDto> getDoneChallenges(@Valid @ModelAttribute ChallengeRequestDto.ChallengePageRequest request) {
+        return ResponseEntity.ok().body(challengeService.findDoneChallenge(request.getOffset(), request.getSize(), request.getNickname()));
     }
 
     @GetMapping("/detail/wait")

@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,8 +33,8 @@ import java.util.stream.Collectors;
  * @author 박찬호
  * @description 챌린지와 관련된 서비스의 역할을 분리한 구현체
  * @since 2022-08-03
- * @updated 1.초대 받은 챌린지 페이징 적용
- *          2023-06-06 박찬호
+ * @updated 1.완료된 챌린지 목록 페이징 적용
+ *          2023-06-09 박찬호
  */
 
 @Slf4j
@@ -177,11 +176,11 @@ public class ChallengeServiceImpl implements ChallengeService {
     }
 
     /*초대 받은 챌린지 목록 조회*/
-    public ChallengeInviteListResponseDto findInviteChallenge(Long id, Integer size, String nickname) {
+    public ChallengeInviteListResponseDto findInviteChallenge(Long offset, Integer size, String nickname) {
         User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new UserException(ExceptionCodeSet.USER_NOT_FOUND));
 
-        List<Challenge> challenges = challengeRepository.findChallengesPageByCond(new ChallengeCond(id, size, user, List.of(ChallengeStatus.WAIT)));
+        List<Challenge> challenges = challengeRepository.findChallengesPageByCond(new ChallengeCond(offset, size, user, List.of(ChallengeStatus.WAIT)));
 
         List<ChallengeResponseDto.Invite> infos = new ArrayList<>();
         for (Challenge challenge : challenges) {
@@ -311,14 +310,15 @@ public class ChallengeServiceImpl implements ChallengeService {
     }
 
     /*진행 완료된 챌린지 리스트 조회*/
-    public List<ChallengeResponseDto.Done> findDoneChallenge(String nickname) {
-        User user = userRepository.findByNickname(nickname).orElseThrow(
-                () -> new UserException(ExceptionCodeSet.USER_NOT_FOUND));
+    public ChallengeDoneListResponseDto findDoneChallenge(Long offset, Integer size, String nickname) {
+        User user = userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new UserException(ExceptionCodeSet.USER_NOT_FOUND));
 
-        List<ChallengeResponseDto.Done> response = new ArrayList<>();
+        List<ChallengeResponseDto.Done> infos = new ArrayList<>();
 
-        Map<Challenge, List<RankDto>> challengeMatrixRank = exerciseRecordRepository.findChallengeMatrixRank(user, List.of(ChallengeStatus.MASTER_DONE, ChallengeStatus.DONE));
+        Map<Challenge, List<RankDto>> challengeMatrixRank = exerciseRecordRepository.findChallengeMatrixRankPage(user, List.of(ChallengeStatus.MASTER_DONE, ChallengeStatus.DONE), offset, size);
         Map<Challenge, ChallengeColor> colors = challengeRepository.findChallengesColor(new ChallengeCond(user, List.of(ChallengeStatus.MASTER_DONE, ChallengeStatus.DONE)));
+        List<Long> offsets = new ArrayList<>();
 
         for (Map.Entry<Challenge, List<RankDto>> entry : challengeMatrixRank.entrySet()) {
             Challenge challenge = entry.getKey();
@@ -328,7 +328,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                     .map(RankDto::getPicturePath)
                     .collect(Collectors.toList());
 
-            response.add(
+            infos.add(
                     ChallengeResponseDto.Done.builder()
                             .name(challenge.getName())
                             .uuid(UuidUtil.bytesToHex(challenge.getUuid()))
@@ -339,9 +339,14 @@ public class ChallengeServiceImpl implements ChallengeService {
                             .picturePaths(pictures)
                             .build()
             );
+            offsets.add(challenge.getId());
         }
 
-        return response;
+        boolean isLast = infos.size() <= size;
+        if (!isLast) infos.remove(infos.size() - 1);
+        Long nextOffset = isLast ? null : offsets.get(infos.size() - 1);
+
+        return new ChallengeDoneListResponseDto(infos, infos.size(), isLast, nextOffset);
     }
 
     /*진행 대기 중 챌린지 상세 조회*/
