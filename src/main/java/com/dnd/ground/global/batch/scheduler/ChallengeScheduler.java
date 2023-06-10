@@ -1,6 +1,6 @@
-package com.dnd.ground.global.batch;
+package com.dnd.ground.global.batch.scheduler;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
@@ -9,6 +9,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,10 +25,20 @@ import java.util.Collections;
  */
 
 @Component
-@RequiredArgsConstructor
+@Slf4j
 public class ChallengeScheduler {
+
+    public ChallengeScheduler(JobLauncher jobLauncher,
+                              @Qualifier("challenge_start_job") Job challenge_start_job,
+                              @Qualifier("challenge_end_job") Job challenge_end_job) {
+        this.jobLauncher = jobLauncher;
+        this.challenge_start_job = challenge_start_job;
+        this.challenge_end_job = challenge_end_job;
+    }
     private final JobLauncher jobLauncher;
+
     private final Job challenge_start_job;
+
     private final Job challenge_end_job;
 
     private static final String JOB_PARAM_DATE = "requestDate";
@@ -37,7 +48,10 @@ public class ChallengeScheduler {
         JobParameters jobParameters = new JobParameters(
                 Collections.singletonMap(JOB_PARAM_DATE,  new JobParameter(String.valueOf(LocalDateTime.now()))));
 
+        log.info("---- 챌린지 시작 배치 실행");
+
         jobLauncher.run(challenge_start_job, jobParameters);
+        log.info("---- 챌린지 시작 배치 종료");
     }
 
     @Scheduled(cron = "0 0 0 ? * MON")
@@ -45,8 +59,8 @@ public class ChallengeScheduler {
         JobParameters jobParameters = new JobParameters(
                 Collections.singletonMap(JOB_PARAM_DATE,  new JobParameter(String.valueOf(LocalDateTime.now()))));
 
-
+        log.info("---- 챌린지 종료 배치 실행");
         jobLauncher.run(challenge_end_job, jobParameters);
+        log.info("---- 챌린지 종료 배치 실행");
     }
-
 }

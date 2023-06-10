@@ -1,4 +1,4 @@
-package com.dnd.ground.domain.exerciseRecord.dto;
+package com.dnd.ground.domain.matrix.dto;
 
 import com.dnd.ground.domain.challenge.ChallengeType;
 import lombok.AllArgsConstructor;
