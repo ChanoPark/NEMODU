@@ -9,6 +9,7 @@ import com.dnd.ground.global.batch.JobLoggerListener;
 import com.dnd.ground.global.batch.JobParamDateTimeConverter;
 import com.dnd.ground.global.log.CommonLogger;
 import com.dnd.ground.global.util.UuidUtil;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -31,8 +32,8 @@ import java.util.Map;
  * @description 주간 챌린지 종료 배치
  * @author  박찬호
  * @since   2023-04-28
- * @updated 1.Job 전/후 로그 리스너 추가
- *          - 2023-05-02 박찬호
+ * @updated 1.예외 처리 전략 추가
+ *          - 2023-06-11 박찬호
  */
 
 @Configuration
@@ -98,6 +99,11 @@ public class ChallengeEndBatch {
                 .reader(reader)
                 .processor(challenge_end_processor)
                 .writer(itemWriter)
+                .faultTolerant()
+                .retry(ConstraintViolationException.class)
+                .retryLimit(3)
+                .skip(ConstraintViolationException.class)
+                .skipLimit(1)
                 .build();
     }
 

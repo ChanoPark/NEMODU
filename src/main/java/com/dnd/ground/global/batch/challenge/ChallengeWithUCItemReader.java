@@ -70,7 +70,6 @@ public class ChallengeWithUCItemReader extends AbstractPagingItemReader<Challeng
      */
     @Override
     protected void doReadPage() {
-        System.out.println("---- READER START ----");
         //결과 배열 및 트랜잭션, em 초기화
         if (results == null) results = new CopyOnWriteArrayList<>();
         else results.clear();

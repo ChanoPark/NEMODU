@@ -23,6 +23,6 @@ public class JobParamDateTimeConverter {
     private LocalDateTime created;
 
     public JobParamDateTimeConverter(String createdStr) {
-        this.created = LocalDateTime.of(LocalDate.parse(createdStr), LocalTime.MIN);
+        this.created = LocalDateTime.parse(createdStr);
     }
 }

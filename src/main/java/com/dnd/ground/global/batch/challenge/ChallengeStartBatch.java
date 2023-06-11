@@ -9,6 +9,7 @@ import com.dnd.ground.global.batch.*;
 import com.dnd.ground.global.log.CommonLogger;
 import com.dnd.ground.global.notification.dto.NotificationForm;
 import com.dnd.ground.global.notification.NotificationMessage;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -30,8 +31,8 @@ import java.util.*;
  * @description 주간 챌린지 시작 배치
  * @author  박찬호
  * @since   2023-04-20
- * @updated 1.Job 전/후 로그 리스너 추가
- *          - 2023-05-02 박찬호
+ * @updated 1.예외 처리 전략 추가
+ *          - 2023-06-11 박찬호
  */
 
 @Configuration
@@ -99,6 +100,11 @@ public class ChallengeStartBatch {
                 .reader(reader)
                 .processor(challenge_start_processor)
                 .writer(itemWriter)
+                .faultTolerant()
+                .retry(ConstraintViolationException.class)
+                .retryLimit(3)
+                .skip(ConstraintViolationException.class)
+                .skipLimit(1)
                 .build();
     }
 
@@ -142,8 +148,9 @@ public class ChallengeStartBatch {
 
     private void sendCancelNoti(UserChallenge uc) {
         LocalDateTime reserved = dateTimeConverter.getCreated().withHour(9);
+
         pushNotificationPublisher.publishEvent(
-                new NotificationForm(List.of(uc.getUser()), NotificationMessage.CHALLENGE_CANCELED, reserved)
+                new NotificationForm(new ArrayList<>(Arrays.asList(uc.getUser())), NotificationMessage.CHALLENGE_CANCELED, reserved)
         );
     }
 }

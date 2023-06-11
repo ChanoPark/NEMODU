@@ -30,8 +30,8 @@ import java.util.List;
  * @description 전체 누적 랭킹 계산 배치 Job. 자정에 새롭게 계산되어 캐싱된다.
  * @author  박찬호
  * @since   2023-06-05
- * @updated 1.누적 랭킹 계산 Job 정의
- *          - 2023-06-05 박찬호
+ * @updated 1.탈퇴한 회원(DeleteUser) 제외
+ *          - 2023-06-11 박찬호
  */
 
 @Configuration
@@ -96,7 +96,7 @@ public class TotalRankBatch {
     @Bean(name = JOB_NAME + "_calculate_item_reader")
     public JpaPagingItemReader<User> totalRankCalculateItemReader() {
         return new JpaPagingItemReaderBuilder<User>()
-                .queryString("SELECT u FROM User u")
+                .queryString("SELECT u FROM User u WHERE u.nickname <> '(알 수 없음)'")
                 .pageSize(CHUNK_SIZE)
                 .entityManagerFactory(entityManagerFactory)
                 .name("total_rank_calculate_item_reader")

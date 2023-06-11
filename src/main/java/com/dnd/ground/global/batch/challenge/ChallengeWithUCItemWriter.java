@@ -7,7 +7,7 @@ import com.dnd.ground.domain.user.User;
 import com.dnd.ground.global.notification.dto.NotificationForm;
 import com.dnd.ground.global.notification.NotificationMessage;
 import com.dnd.ground.global.util.UuidUtil;
-import org.springframework.batch.core.configuration.annotation.StepScope;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,7 @@ import java.util.Map;
  */
 
 @Component
-@StepScope
+@Slf4j
 public class ChallengeWithUCItemWriter extends JpaItemWriter<ChallengeWithUCDto> {
     private final ApplicationEventPublisher pushNotificationPublisher;
     private JobParamDateTimeConverter dateTimeConverter;
@@ -50,14 +50,15 @@ public class ChallengeWithUCItemWriter extends JpaItemWriter<ChallengeWithUCDto>
     protected void doWrite(EntityManager entityManager, List<? extends ChallengeWithUCDto> items) {
         if (!items.isEmpty()) {
             for (ChallengeWithUCDto item : items) {
-                Challenge challenge = item.getChallenge();
-                entityManager.merge(challenge);
-
                 List<UserChallenge> ucs = item.getUcs();
                 List<User> users = new ArrayList<>();
                 for (UserChallenge uc : ucs) {
                     entityManager.merge(uc);
+                    users.add(uc.getUser());
                 }
+
+                Challenge challenge = item.getChallenge();
+                entityManager.merge(challenge);
 
                 //푸시 알람 발송
                 if (challenge.getStatus() == ChallengeStatus.PROGRESS)

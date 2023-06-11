@@ -1,6 +1,5 @@
 package com.dnd.ground.batch;
 
-import com.dnd.ground.GroundApplication;
 import com.dnd.ground.domain.challenge.Challenge;
 import com.dnd.ground.domain.challenge.ChallengeStatus;
 import com.dnd.ground.domain.challenge.UserChallenge;
@@ -53,7 +52,6 @@ public class ChallengeStartBatchTest {
     @Autowired
     UserChallengeRepository userChallengeRepository;
 
-
     @Test
     @DisplayName("배치: 주간 챌린지 시작")
     void challengeStartBatch() throws Exception {
@@ -71,13 +69,12 @@ public class ChallengeStartBatchTest {
         this.jobLauncherTestUtils.setJob(challenge_start_job);
 
         //WHEN
-        System.out.println("---- START BATCH ----");
-        LocalDateTime jobParam = LocalDateTime.of(LocalDate.now(), LocalTime.now());
+        LocalDateTime jobParam = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
         JobExecution batchJob = jobLauncherTestUtils.launchJob(new JobParameters(
                 Collections.singletonMap("requestDate", new JobParameter(String.valueOf(jobParam)))));
-        System.out.println("---- END BATCH ----");
+
         //THEN
-        Assertions.assertEquals(batchJob.getStatus(), BatchStatus.COMPLETED);
+        Assertions.assertEquals(BatchStatus.COMPLETED, batchJob.getStatus());
 
         for (ChallengeWithUCDto dto : beforeList) {
             Challenge beforeChallenge = dto.getChallenge();
