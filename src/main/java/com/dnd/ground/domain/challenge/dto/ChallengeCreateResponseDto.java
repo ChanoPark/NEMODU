@@ -3,7 +3,7 @@ package com.dnd.ground.domain.challenge.dto;
 import com.dnd.ground.domain.user.dto.UserResponseDto;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
  *          - 2023.02.27
  */
 
-@Data
+@Getter
 @Builder
 public class ChallengeCreateResponseDto {
     @ApiModelProperty(value = "회원 목록", example = "\\'users\\': [{\\'nickname\\': \\'NickB\\',\\'picturePath\\': https://dnd-ground-bucket.s3.ap-northeast-2.amazonaws.com/user/profile/default_profile.png}]")

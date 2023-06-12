@@ -45,7 +45,7 @@ public class ChallengeCreateRequestDto {
     @ApiModelProperty(value="챌린지 종류(영역: WIDEN || 칸: ACCUMULATE)", example="ACCUMULATE", required = true)
     private ChallengeType type;
 
-    @Size(min=1, message = "함께하는 친구가 1명 이상이어야 합니다.")
+    @Size(min=1, max = 3, message = "함께하는 친구는 1~3명까지 가능합니다.")
     @ApiModelProperty(value="함께하는 친구 닉네임 리스트", example="[NickB, NickC]", required = true)
     private Set<String> friends;
 

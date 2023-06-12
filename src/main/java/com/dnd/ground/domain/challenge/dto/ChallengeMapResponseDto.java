@@ -3,9 +3,10 @@ package com.dnd.ground.domain.challenge.dto;
 import com.dnd.ground.domain.challenge.ChallengeColor;
 import com.dnd.ground.domain.matrix.dto.Location;
 import com.dnd.ground.domain.user.dto.UserResponseDto;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.List;
 
@@ -19,14 +20,16 @@ import java.util.List;
 public class ChallengeMapResponseDto {
 
     /*챌린지 지도 상세 조회*/
-    @Data @AllArgsConstructor
-    public static class Detail {
+    @Getter
+    @AllArgsConstructor
+    @ApiModel(value = "ChallengeMapResponseDto.DetailMap")
+    public static class DetailMap {
         List<UserMapInfo> matrixList;
         List<UserResponseDto.Ranking> rankingList;
     }
 
     /*챌린지 지도에 포함되는 상세 정보*/
-    @Data
+    @Getter
     @AllArgsConstructor
     public static class UserMapInfo {
         @ApiModelProperty(value = "닉네임", example = "nick1")

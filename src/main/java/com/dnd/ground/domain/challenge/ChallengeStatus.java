@@ -3,6 +3,7 @@ package com.dnd.ground.domain.challenge;
 /**
  * @description 챌린지 상태(Challenge, UserChallenge 둘 다 사용)
  *              WAIT               - 대기 상태
+ *              READY              - 준비 상태
  *              MASTER             - 주최자 대기 상태(UC Only)
  *              MASTER_PROGRESS    - 주최자 진행 중인 상태(UC Only)
  *              PROGRESS           - 진행 중
@@ -17,7 +18,7 @@ package com.dnd.ground.domain.challenge;
  */
 
 public enum ChallengeStatus {
-    WAIT, MASTER,
+    WAIT, READY, MASTER,
     PROGRESS, MASTER_PROGRESS,
     DONE, MASTER_DONE,
     REJECT

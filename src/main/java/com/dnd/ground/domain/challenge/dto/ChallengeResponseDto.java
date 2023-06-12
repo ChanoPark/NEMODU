@@ -21,7 +21,6 @@ import java.util.List;
  *          2023-05-22 박찬호
  */
 
-
 public class ChallengeResponseDto {
 
     /*상태에 상관 없이 사용되는 챌린지 관련 공통 정보*/
@@ -104,6 +103,7 @@ public class ChallengeResponseDto {
     /*진행 완료 상태의 챌린지 정보*/
     @Getter
     @Builder
+    @ToString
     static public class Done {
         @ApiModelProperty(value="챌린지 이름", example="챌린지1")
         private String name;
@@ -129,6 +129,7 @@ public class ChallengeResponseDto {
 
     /*초대 받은 챌린지 정보*/
     @Getter
+    @ToString
     @Builder
     static public class Invite {
         @ApiModelProperty(value="챌린지 이름", example="챌린지A")
@@ -138,13 +139,13 @@ public class ChallengeResponseDto {
         private String uuid;
 
         @ApiModelProperty(value="주최자 닉네임(초대자)", example="NickA")
-        private String InviterNickname;
+        private String inviterNickname;
 
         @ApiModelProperty(value="초대 메시지(Nullable)", example="초대 메시지입니다.")
         private String message;
 
-        @ApiModelProperty(value="초대 시간(yyyy-MM-dd hh:mm)", example="2022-08-12 22:10")
-        private String created;
+        @ApiModelProperty(value="초대 시간(yyyy-MM-ddThh:mm:ss)", example="2022-08-12T22:10:12")
+        private LocalDateTime created;
 
         @ApiModelProperty(value="주최자의 프로필 사진 URI(카카오 프로필 사용 시 kakao/카카오회원번호)", example="http:\\/\\/k.kakaocdn.net\\/dn\\/uQVeo\\/btrLgESJyjg\\/Pff3k36lRWkQ98ebAlexv1\\/img_640x640.jpg")
         private String picturePath;
@@ -215,10 +216,11 @@ public class ChallengeResponseDto {
         private LocalDateTime ended;
 
         @ApiModelProperty(value="챌린지에 참가하는 회원 정보 목록", example="[{picturePath: \"http:\\/\\/k.kakaocdn.net\\/dn\\/uQVeo\\/btrLgESJyjg\\/Pff3k36lRWkQ98ebAlexv1\\/img_640x640.jpg\", nickname: \"NickA\", status:\"Wait\"}]")
-        List<UCDto.UCInfo> infos;
+        private List<UCDto.UCInfo> infos;
     }
 
     @AllArgsConstructor
+    @NoArgsConstructor
     @Getter
     public static class Status {
         @ApiModelProperty(value = "변경된 챌린지 상태", example = "Reject")

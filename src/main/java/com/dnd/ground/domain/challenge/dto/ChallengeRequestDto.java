@@ -17,7 +17,6 @@ import javax.validation.constraints.NotNull;
  *          - 2023.02.18 박찬호
  */
 
-
 public class ChallengeRequestDto {
     @Getter
     @AllArgsConstructor
@@ -34,7 +33,7 @@ public class ChallengeRequestDto {
     @Getter
     @AllArgsConstructor
     public static class ChallengePageRequest {
-        private Long id;
+        private Long offset;
 
         @Min(1)
         @NotNull
