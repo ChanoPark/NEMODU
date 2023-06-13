@@ -33,6 +33,14 @@ public class MatrixCond {
         this.ended = ended;
     }
 
+    public MatrixCond(User user, LocalDateTime started, LocalDateTime ended, Double spanDelta, Location location) {
+        this.user = user;
+        this.started = started;
+        this.ended = ended;
+        this.spanDelta = spanDelta;
+        this.location = location;
+    }
+
     public MatrixCond(User user) {
         this.user = user;
     }

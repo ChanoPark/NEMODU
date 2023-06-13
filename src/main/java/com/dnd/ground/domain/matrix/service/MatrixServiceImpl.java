@@ -67,7 +67,7 @@ public class MatrixServiceImpl implements MatrixService {
             return matrixRepository.findMatrix(condition);
         } else if (request.getType().equals(MatrixUserCond.CHALLENGE)) {
             String uuid = request.getUuid();
-            if (StringUtils.isNullOrEmpty(uuid)) throw new ExerciseRecordException(ExceptionCodeSet.CHALLENGE_UUID_INVALID);
+            if (StringUtils.isNullOrEmpty(uuid)) throw new ExerciseRecordException(ExceptionCodeSet.UUID_INVALID);
             MatrixCond condition = new MatrixCond(UuidUtil.hexToBytes(uuid), request.getLocation(), request.getSpanDelta());
 
             return matrixRepository.findChallengeMatrix(condition);

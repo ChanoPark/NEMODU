@@ -11,7 +11,7 @@ import javax.persistence.*;
  * @description 운동 기록 엔티티
  * @author  박세헌, 박찬호
  * @since   2022-07-27
- * @updated 1. Point 추가 (위도, 경도에서 point로 이관 중)
+ * @updated 1. Point 이관
  *          - 2023.02.08 박찬호
  */
 

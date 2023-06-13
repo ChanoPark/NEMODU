@@ -3,8 +3,10 @@ package com.dnd.ground.domain.matrix.repository;
 import com.dnd.ground.domain.exerciseRecord.ExerciseRecord;
 import com.dnd.ground.domain.matrix.Matrix;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,7 +19,11 @@ import java.util.List;
  */
 
 public interface MatrixRepository extends JpaRepository<Matrix, Long>, MatrixRepositoryQuery {
-    // 운동 기록의 매트릭스 리스트 조회
     @Query("select m from Matrix m where m.exerciseRecord=:exerciseRecord")
     List<Matrix> findByRecord(@Param("exerciseRecord") ExerciseRecord exerciseRecord);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Matrix m WHERE m.exerciseRecord in :records")
+    void deleteAllByRecord(@Param("records") List<ExerciseRecord> records);
 }
