@@ -36,6 +36,7 @@ public class KakaoException extends BaseExceptionAbs {
             case 3:
             case 4:
             case 5:
+            case 402:
                 return ExceptionCodeSet.KAKAO_NO_AGREE;
             case 10:
             case 903:
@@ -48,7 +49,6 @@ public class KakaoException extends BaseExceptionAbs {
             case 103:
             case 201:
             case 401:
-            case 402:
             case 406:
                 return ExceptionCodeSet.KAKAO_INVALID_TOKEN;
             default:

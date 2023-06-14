@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
  */
 
 public class FilterException extends AuthenticationException implements BaseException {
+    private ExceptionCodeSet code;
+
     public FilterException(String msg, Throwable cause) {
         super(msg, cause);
     }
@@ -29,16 +31,14 @@ public class FilterException extends AuthenticationException implements BaseExce
         this.code = codeSet;
     }
 
-    private ExceptionCodeSet code;
+    @Override
+    public String getDebugMessage() {
+        return this.getExceptionCode().getMessage();
+    }
 
     @Override
     public ExceptionCodeSet getExceptionCode() {
         return this.code;
-    }
-
-    @Override
-    public HttpStatus getHttpStatus() {
-        return this.code.getHttpStatus();
     }
 
     @Override
