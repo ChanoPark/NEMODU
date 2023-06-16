@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,12 +29,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select u from User u join u.exerciseRecords e where e = :exerciseRecord")
     Optional<User> findByExerciseRecord(ExerciseRecord exerciseRecord);
 
-    @Query("select u from User u where u.id=:id")
+    @Query("SELECT u FROM User u INNER JOIN UserProperty up ON u.property = up WHERE up.socialId = :id")
     Optional<User> findByKakaoId(Long id);
     Optional<User> findByEmail(String email);
 
+    @Query("SELECT u FROM User u WHERE u.nickname IN :nicknames")
+    List<User> findAllByNickname(List<String> nicknames);
+
     @Transactional
     void deleteByNickname(String nickname);
-    @Transactional
-    void deleteByEmail(String email);
+
 }

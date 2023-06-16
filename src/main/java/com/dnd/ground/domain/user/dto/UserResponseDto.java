@@ -19,7 +19,6 @@ import java.util.List;
  *          - 2023-03-07 박찬호
  */
 
-@Getter
 public class UserResponseDto {
     @Getter
     @AllArgsConstructor
@@ -149,7 +148,7 @@ public class UserResponseDto {
         private String picturePath;
     }
 
-    /*랭킹과 관련된 DTO (추후 프로필 사진 필드 추가해야됨)*/
+    /*랭킹과 관련된 DTO*/
     @Getter
     @AllArgsConstructor
     public static class Ranking {

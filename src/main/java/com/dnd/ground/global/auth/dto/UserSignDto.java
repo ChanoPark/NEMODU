@@ -37,12 +37,13 @@ public class UserSignDto {
     private Boolean isPublicRecord;
 
     @NotNull
+    private Boolean isExceptRecommend;
+
+    @NotNull
     private Boolean isNotification;
 
-    @NotNull
     private String fcmToken;
 
-    @NotNull
     private String socialId;
 
     @NotNull

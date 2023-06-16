@@ -21,8 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
  * @description 회원 관련 컨트롤러 구현체
  * @author  박세헌, 박찬호
  * @since   2022-08-02
- * @updated 1.친구 추천 목록 제외 필터 변경 API 구현
- *          - 2023-05-23 박찬호
+ * @updated 1.친구 추천 목록 제외 필터 조회 API 구현
+ *          - 2023-05-25 박찬호
  */
 
 @Api(tags = "회원")
@@ -113,6 +113,12 @@ public class UserControllerImpl implements UserController {
     @Operation(summary = "회원의 알람 옵션 조회", description = "회원의 현재 옵션 정보를 반환합니다.")
     public ResponseEntity<UserResponseDto.NotificationFilters> getNotificationFilters(@RequestParam("nickname") String nickname) {
         return ResponseEntity.ok().body(userService.getNotificationFilters(nickname));
+    }
+
+    @GetMapping("/filter/recommend")
+    @Operation(summary = "회원의 친구 추천 목록 제외 옵션 조회", description = "회원의 친구 추천 목록 제외 옵션을 반환합니다.")
+    public ResponseEntity<UserResponseDto.Filter> getFilterExceptRecommend(@RequestParam("nickname") String nickname) {
+        return ResponseEntity.ok().body(userService.getFilterExceptRecommend(nickname));
     }
 
     @PostMapping(value = "/info/profile/edit", consumes =  {MediaType.MULTIPART_FORM_DATA_VALUE})

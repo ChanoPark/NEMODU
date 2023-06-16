@@ -66,12 +66,15 @@ public class User {
     private UserProperty property;
 
     @OneToMany(mappedBy = "friend", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Friend> friends = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+    @Builder.Default
     private List<UserChallenge> challenges = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<ExerciseRecord> exerciseRecords = new ArrayList<>();
 
     //마지막 위치 최신화
