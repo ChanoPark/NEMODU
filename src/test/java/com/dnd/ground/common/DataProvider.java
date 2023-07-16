@@ -1,13 +1,16 @@
 package com.dnd.ground.common;
 
-import com.dnd.ground.domain.challenge.ChallengeType;
+import com.dnd.ground.domain.challenge.*;
 import com.dnd.ground.domain.challenge.dto.ChallengeCreateRequestDto;
+import com.dnd.ground.domain.challenge.repository.ChallengeRepository;
+import com.dnd.ground.domain.challenge.repository.UserChallengeRepository;
 import com.dnd.ground.domain.challenge.service.ChallengeService;
 import com.dnd.ground.domain.user.LoginType;
 import com.dnd.ground.domain.user.User;
 import com.dnd.ground.domain.user.UserProperty;
 import com.dnd.ground.domain.user.repository.UserRepository;
 import com.dnd.ground.global.util.JwtUtil;
+import com.dnd.ground.global.util.UuidUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +30,12 @@ public class DataProvider {
 
     @Autowired
     ChallengeService challengeService;
+
+    @Autowired
+    ChallengeRepository challengeRepository;
+
+    @Autowired
+    UserChallengeRepository userChallengeRepository;
 
     @Value("${picture.path}")
     private String DEFAULT_PATH;
@@ -114,8 +123,8 @@ public class DataProvider {
     }
 
     @Transactional
-    public void createChallenge(String masterNickname, String member1Nickname, String member2Nickname,
-                                String challengeName, String message, ChallengeType type, LocalDateTime started) {
+    public void createNewChallenge(String masterNickname, String member1Nickname, String member2Nickname,
+                                   String challengeName, String message, ChallengeType type, LocalDateTime started) {
         Set<String> members = new HashSet<>();
         if (member1Nickname != null) members.add(member1Nickname);
         if (member2Nickname != null) members.add(member2Nickname);
@@ -123,5 +132,25 @@ public class DataProvider {
         started = started != null ? started : LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
 
         challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
+    }
+
+    @Transactional
+    public void createDoneChallenge(String name, long minusWeek, String message, ChallengeType type, User master, User member1, User member2) {
+        Challenge challenge = Challenge.builder()
+                .uuid(UuidUtil.createUUID())
+                .name(name)
+                .created(LocalDateTime.now().minusWeeks(minusWeek).minusDays(1))
+                .started(LocalDateTime.now().minusWeeks(minusWeek))
+                .ended(ChallengeService.getSunday(LocalDateTime.now().minusWeeks(minusWeek)))
+                .message(message)
+                .type(type)
+                .status(ChallengeStatus.DONE)
+                .build();
+
+        challengeRepository.save(challenge);
+
+        if (master != null) userChallengeRepository.save(new UserChallenge(challenge, master, ChallengeColor.RED, ChallengeStatus.MASTER_DONE));
+        if (member1 != null) userChallengeRepository.save(new UserChallenge(challenge, member1, ChallengeColor.PINK, ChallengeStatus.DONE));
+        if (member2 != null) userChallengeRepository.save(new UserChallenge(challenge, member2, ChallengeColor.YELLOW, ChallengeStatus.DONE));
     }
 }

@@ -25,6 +25,7 @@ spring:
       enabled: false
     jdbc:
       initialize-schema: ALWAYS
+      isolation-level-for-create: default
   redis:
     host: ${spring.redis.host}
     port: ${spring.redis.port}

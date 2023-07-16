@@ -1,10 +1,7 @@
 package com.dnd.ground.domain.challenge;
 
 import com.dnd.ground.common.DataProvider;
-import com.dnd.ground.domain.challenge.dto.ChallengeCreateRequestDto;
-import com.dnd.ground.domain.challenge.dto.ChallengeCreateResponseDto;
-import com.dnd.ground.domain.challenge.dto.ChallengeRequestDto;
-import com.dnd.ground.domain.challenge.dto.ChallengeResponseDto;
+import com.dnd.ground.domain.challenge.dto.*;
 import com.dnd.ground.domain.challenge.repository.ChallengeRepository;
 import com.dnd.ground.domain.challenge.repository.UserChallengeRepository;
 import com.dnd.ground.domain.challenge.service.ChallengeService;
@@ -18,6 +15,7 @@ import com.dnd.ground.global.notification.PushNotification;
 import com.dnd.ground.global.notification.PushNotificationType;
 import com.dnd.ground.global.notification.repository.NotificationRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -74,9 +72,12 @@ class ChallengeCreateTest {
     @Autowired
     NotificationRepository notificationRepository;
 
+    static String AUTHORIZATION_TOKEN;
+
     @BeforeEach
     public void init() {
         dataProvider.createUser(10);
+        AUTHORIZATION_TOKEN = "Bearer " + dataProvider.getAccessToken();
     }
 
     @Nested
@@ -118,6 +119,7 @@ class ChallengeCreateTest {
             String response = mvc
                     .perform(post("/challenge/")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, AUTHORIZATION_TOKEN)
                             .content(requestBody)
                     )
                     .andExpect(status().isCreated())
@@ -214,6 +216,7 @@ class ChallengeCreateTest {
 
             mvc.perform(post("/challenge/")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, AUTHORIZATION_TOKEN)
                             .content(requestBody)
                     )
                     .andExpect(status().isBadRequest());
@@ -240,6 +243,7 @@ class ChallengeCreateTest {
 
             mvc.perform(post("/challenge/")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, AUTHORIZATION_TOKEN)
                             .content(requestBody)
                     )
                     .andExpect(status().isBadRequest());
@@ -269,6 +273,7 @@ class ChallengeCreateTest {
             String response = mvc
                     .perform(post("/challenge/")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, AUTHORIZATION_TOKEN)
                             .content(requestBody)
                     )
                     .andExpect(status().isBadRequest())
@@ -311,7 +316,10 @@ class ChallengeCreateTest {
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
-            ChallengeResponseDto.Invite invitedChallenge = challengeService.findInviteChallenge(member1Nickname).get(0);
+            ChallengeInviteListResponseDto inviteChallenges = challengeService.findInviteChallenge(null, 1, member1Nickname);
+            assertThat(inviteChallenges.getInfos()).isNotNull();
+            assertThat(inviteChallenges.getInfos().size()).isEqualTo(1);
+            ChallengeResponseDto.Invite invitedChallenge = inviteChallenges.getInfos().get(0);
 
             //WHEN
             ChallengeRequestDto.CInfo request = new ChallengeRequestDto.CInfo(invitedChallenge.getUuid(), member1Nickname);
@@ -319,6 +327,7 @@ class ChallengeCreateTest {
 
             String response = mvc.perform(post("/challenge/accept")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, AUTHORIZATION_TOKEN)
                             .content(requestBody)
                     )
                     .andExpect(status().isOk())
@@ -352,7 +361,10 @@ class ChallengeCreateTest {
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
-            ChallengeResponseDto.Invite invitedChallenge = challengeService.findInviteChallenge(member1Nickname).get(0);
+            ChallengeInviteListResponseDto inviteChallenges = challengeService.findInviteChallenge(null, 1, member1Nickname);
+            assertThat(inviteChallenges.getInfos()).isNotNull();
+            assertThat(inviteChallenges.getInfos().size()).isEqualTo(1);
+            ChallengeResponseDto.Invite invitedChallenge = inviteChallenges.getInfos().get(0);
 
             //WHEN
             ChallengeRequestDto.CInfo request = new ChallengeRequestDto.CInfo(invitedChallenge.getUuid(), member1Nickname);
@@ -360,6 +372,7 @@ class ChallengeCreateTest {
 
             String response = mvc.perform(post("/challenge/reject")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, AUTHORIZATION_TOKEN)
                             .content(requestBody)
                     )
                     .andExpect(status().isOk())
@@ -395,7 +408,10 @@ class ChallengeCreateTest {
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
-            ChallengeResponseDto.Invite invitedChallenge = challengeService.findInviteChallenge(member1Nickname).get(0);
+            ChallengeInviteListResponseDto inviteChallenges = challengeService.findInviteChallenge(null, 1, member1Nickname);
+            assertThat(inviteChallenges.getInfos()).isNotNull();
+            assertThat(inviteChallenges.getInfos().size()).isEqualTo(1);
+            ChallengeResponseDto.Invite invitedChallenge = inviteChallenges.getInfos().get(0);
 
             //WHEN
             ChallengeRequestDto.CInfo request = new ChallengeRequestDto.CInfo(invitedChallenge.getUuid(), notMemberNickname);
@@ -403,6 +419,7 @@ class ChallengeCreateTest {
 
             String response = mvc.perform(post("/challenge/accept")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, AUTHORIZATION_TOKEN)
                             .content(requestBody)
                     )
                     .andExpect(status().isBadRequest())
@@ -438,7 +455,10 @@ class ChallengeCreateTest {
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
-            ChallengeResponseDto.Invite invitedChallenge = challengeService.findInviteChallenge(member1Nickname).get(0);
+            ChallengeInviteListResponseDto inviteChallenges = challengeService.findInviteChallenge(null, 1, member1Nickname);
+            assertThat(inviteChallenges.getInfos()).isNotNull();
+            assertThat(inviteChallenges.getInfos().size()).isEqualTo(1);
+            ChallengeResponseDto.Invite invitedChallenge = inviteChallenges.getInfos().get(0);
 
             //WHEN
             ChallengeRequestDto.CInfo request = new ChallengeRequestDto.CInfo(invitedChallenge.getUuid(), invalidNickname);
@@ -446,6 +466,7 @@ class ChallengeCreateTest {
 
             String response = mvc.perform(post("/challenge/accept")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, AUTHORIZATION_TOKEN)
                             .content(requestBody)
                     )
                     .andExpect(status().isBadRequest())
@@ -481,7 +502,9 @@ class ChallengeCreateTest {
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
-            challengeService.findInviteChallenge(member1Nickname).get(0);
+            ChallengeInviteListResponseDto inviteChallenges = challengeService.findInviteChallenge(null, 1, member1Nickname);
+            assertThat(inviteChallenges.getInfos()).isNotNull();
+            assertThat(inviteChallenges.getInfos().size()).isEqualTo(1);
 
             //WHEN
             ChallengeRequestDto.CInfo request = new ChallengeRequestDto.CInfo(invalidUuid, member1Nickname);
@@ -489,6 +512,7 @@ class ChallengeCreateTest {
 
             String response = mvc.perform(post("/challenge/accept")
                             .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, AUTHORIZATION_TOKEN)
                             .content(requestBody)
                     )
                     .andExpect(status().isBadRequest())
@@ -498,7 +522,7 @@ class ChallengeCreateTest {
 
             //THEN
             ErrorResponse result = mapper.readValue(response, ErrorResponse.class);
-            assertThat(result.getCode()).isEqualTo(ExceptionCodeSet.NOT_FOUND_UC.getCode());
+            assertThat(result.getCode()).isEqualTo(ExceptionCodeSet.UUID_INVALID.getCode());
         }
     }
 }
