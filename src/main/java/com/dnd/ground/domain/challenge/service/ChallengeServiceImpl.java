@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
  * @author 박찬호
  * @description 챌린지와 관련된 서비스의 역할을 분리한 구현체
  * @since 2022-08-03
- * @updated 1.완료된 챌린지 목록 페이징 적용
- *          2023-06-09 박찬호
+ * @updated 1. 각 회원별 챌린지 시작-종료 시간 관리 추가
+ *          - 2023-12-21 박찬호
  */
 
 @Slf4j
@@ -96,7 +96,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         //주최자 관계 생성
         int colorIdx = (int) (challengeCountMap.get(master) % MAX_CHALLENGE_COUNT);
-        userChallengeRepository.save(new UserChallenge(challenge, master, color[colorIdx], ChallengeStatus.MASTER));
+        userChallengeRepository.save(new UserChallenge(challenge, master, color[colorIdx], ChallengeStatus.MASTER, requestDto.getStarted()));
         challengeCountMap.remove(master);
 
         //멤버 관계 생성
@@ -104,7 +104,9 @@ public class ChallengeServiceImpl implements ChallengeService {
             User member = entry.getKey();
             if (entry.getValue() <= MAX_CHALLENGE_COUNT) {
                 colorIdx = (int) (challengeCountMap.get(member) % MAX_CHALLENGE_COUNT);
-                userChallengeRepository.save(new UserChallenge(challenge, member, color[colorIdx], ChallengeStatus.WAIT));
+
+                userChallengeRepository.save(new UserChallenge(challenge, member, color[colorIdx], ChallengeStatus.WAIT, requestDto.getStarted()));
+
                 membersInfo.add(new UserResponseDto.UInfo(member.getNickname(), member.getPicturePath()));
             } else {
                 exceptMembers.add(member.getNickname());

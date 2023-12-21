@@ -32,8 +32,8 @@ import java.util.Map;
  * @description 주간 챌린지 종료 배치
  * @author  박찬호
  * @since   2023-04-28
- * @updated 1.예외 처리 전략 추가
- *          - 2023-06-11 박찬호
+ * @updated 1. 각 회원별 챌린지 시작-종료 시간 관리 추가
+ *          - 2023-12-21 박찬호
  */
 
 @Configuration
@@ -124,8 +124,14 @@ public class ChallengeEndBatch {
                 challenge.updateStatus(ChallengeStatus.DONE);
                 List<UserChallenge> exceptMembers = new ArrayList<>();
                 for (UserChallenge uc : ucs) {
-                    if (uc.getStatus() == ChallengeStatus.MASTER_PROGRESS) uc.changeStatus(ChallengeStatus.MASTER_DONE);
-                    else if (uc.getStatus() == ChallengeStatus.PROGRESS) uc.changeStatus(ChallengeStatus.DONE);
+                    if (uc.getStatus() == ChallengeStatus.MASTER_PROGRESS) {
+                        uc.changeStatus(ChallengeStatus.MASTER_DONE);
+                        uc.setEnded(challenge.getEnded());
+                    }
+                    else if (uc.getStatus() == ChallengeStatus.PROGRESS) {
+                        uc.changeStatus(ChallengeStatus.DONE);
+                        uc.setEnded(challenge.getEnded());
+                    }
                     else {
                         logger.errorWrite(String.format("챌린지 종료 배치: 회원의 상태가 올바르지 않습니다: 닉네임:%s 상태:%s", uc.getUser().getNickname(), uc.getStatus().name()));
                         exceptMembers.add(uc);
