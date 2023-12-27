@@ -36,7 +36,6 @@ import static com.querydsl.core.group.GroupBy.list;
 public class ChallengeQueryRepositoryImpl implements ChallengeQueryRepository {
     private final JPAQueryFactory queryFactory;
 
-
     /*진행 중인 챌린지 멤버 조회*/
     @Override
     public List<User> findUCInProgress(User user) {

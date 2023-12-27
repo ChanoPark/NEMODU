@@ -35,8 +35,8 @@ import static com.querydsl.core.group.GroupBy.list;
  * @description 운동 기록(영역) 관련 QueryDSL 레포지토리
  * @author  박찬호
  * @since   2022-08-01
- * @updated 1.챌린지 랭킹 조회 페이징 쿼리 추가
- *          2023-06-09 박찬호
+ * @updated 1.ChallengeType -> ChallengeScoreType 클래스명 및 관련 변수명 수정
+ *          - 2023-12-27 박찬호
  */
 
 @Repository
@@ -146,11 +146,11 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
                 .select(
                         user.nickname,
                         user.picturePath,
-                        challenge.type,
+                        challenge.scoreType,
                         new CaseBuilder()
-                                .when(challenge.type.eq(ChallengeType.ACCUMULATE))
+                                .when(challenge.scoreType.eq(ChallengeScoreType.ACCUMULATE))
                                 .then(matrix.count())
-                                .when(challenge.type.eq(ChallengeType.WIDEN))
+                                .when(challenge.scoreType.eq(ChallengeScoreType.WIDEN))
                                 .then(matrix.point.countDistinct())
                                 .otherwise(0L))
                 .from(user)
@@ -186,9 +186,9 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
                                         user.nickname,
                                         user.picturePath,
                                         new CaseBuilder()
-                                                .when(challenge.type.eq(ChallengeType.ACCUMULATE))
+                                                .when(challenge.scoreType.eq(ChallengeScoreType.ACCUMULATE))
                                                 .then(matrix.count())
-                                                .when(challenge.type.eq(ChallengeType.WIDEN))
+                                                .when(challenge.scoreType.eq(ChallengeScoreType.WIDEN))
                                                 .then(matrix.point.countDistinct())
                                                 .otherwise(0L)
                                 ))
@@ -205,11 +205,11 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
                 .select(
                         user.nickname,
                         user.picturePath,
-                        challenge.type,
+                        challenge.scoreType,
                         new CaseBuilder()
-                                .when(challenge.type.eq(ChallengeType.ACCUMULATE))
+                                .when(challenge.scoreType.eq(ChallengeScoreType.ACCUMULATE))
                                 .then(matrix.count())
-                                .when(challenge.type.eq(ChallengeType.WIDEN))
+                                .when(challenge.scoreType.eq(ChallengeScoreType.WIDEN))
                                 .then(matrix.point.countDistinct())
                                 .otherwise(0L))
                 .distinct()
@@ -257,9 +257,9 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
                                         user.nickname,
                                         user.picturePath,
                                         new CaseBuilder()
-                                                .when(challenge.type.eq(ChallengeType.ACCUMULATE))
+                                                .when(challenge.scoreType.eq(ChallengeScoreType.ACCUMULATE))
                                                 .then(matrix.count())
-                                                .when(challenge.type.eq(ChallengeType.WIDEN))
+                                                .when(challenge.scoreType.eq(ChallengeScoreType.WIDEN))
                                                 .then(matrix.point.countDistinct())
                                                 .otherwise(0L)
                                 ))
@@ -277,11 +277,11 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
                 .select(
                         user.nickname,
                         user.picturePath,
-                        challenge.type,
+                        challenge.scoreType,
                         new CaseBuilder()
-                                .when(challenge.type.eq(ChallengeType.ACCUMULATE))
+                                .when(challenge.scoreType.eq(ChallengeScoreType.ACCUMULATE))
                                 .then(matrix.count())
-                                .when(challenge.type.eq(ChallengeType.WIDEN))
+                                .when(challenge.scoreType.eq(ChallengeScoreType.WIDEN))
                                 .then(matrix.point.countDistinct())
                                 .otherwise(0L))
                 .from(user)
@@ -322,9 +322,9 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
                                         user.nickname,
                                         user.picturePath,
                                         new CaseBuilder()
-                                                .when(challenge.type.eq(ChallengeType.ACCUMULATE))
+                                                .when(challenge.scoreType.eq(ChallengeScoreType.ACCUMULATE))
                                                 .then(matrix.count())
-                                                .when(challenge.type.eq(ChallengeType.WIDEN))
+                                                .when(challenge.scoreType.eq(ChallengeScoreType.WIDEN))
                                                 .then(matrix.point.countDistinct())
                                                 .otherwise(0L)
                                 ))
@@ -338,11 +338,11 @@ public class RankQueryRepositoryImpl implements RankQueryRepository {
                 .select(Projections.constructor(RankDto.class,
                         user.nickname,
                         user.picturePath,
-                        challenge.type,
+                        challenge.scoreType,
                         new CaseBuilder()
-                                .when(challenge.type.eq(ChallengeType.ACCUMULATE))
+                                .when(challenge.scoreType.eq(ChallengeScoreType.ACCUMULATE))
                                 .then(matrix.count())
-                                .when(challenge.type.eq(ChallengeType.WIDEN))
+                                .when(challenge.scoreType.eq(ChallengeScoreType.WIDEN))
                                 .then(matrix.point.countDistinct())
                                 .otherwise(0L)
                 ))

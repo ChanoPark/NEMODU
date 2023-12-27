@@ -97,7 +97,7 @@ public class ChallengeListReadTest {
             String challengeName = "초대 받은 챌린지 목록 조회 테스트";
             String message = "초대 받은 챌린지 목록 조회 테스트입니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
-            ChallengeType type = ChallengeType.WIDEN;
+            ChallengeScoreType type = ChallengeScoreType.WIDEN;
 
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
 
@@ -171,27 +171,27 @@ public class ChallengeListReadTest {
             System.out.println(">>> 초대 받은 챌린지 목록 성공: 페이징 <<< 테스트 START");
 
             //GIVEN
-            dataProvider.createNewChallenge("nick2", "nick1", "nick3", "챌린지1", "초대 받은 챌린지 페이징1", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick2", "nick1", "nick3", "챌린지1", "초대 받은 챌린지 페이징1", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick3", "nick1", "nick4", "챌린지2", "초대 받은 챌린지 페이징2", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick3", "nick1", "nick4", "챌린지2", "초대 받은 챌린지 페이징2", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick4", "nick1", "nick5", "챌린지3", "초대 받은 챌린지 페이징3", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick4", "nick1", "nick5", "챌린지3", "초대 받은 챌린지 페이징3", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick5", "nick1", "nick6", "챌린지4", "초대 받은 챌린지 페이징4", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick5", "nick1", "nick6", "챌린지4", "초대 받은 챌린지 페이징4", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick6", "nick1", "nick7", "챌린지5", "초대 받은 챌린지 페이징5", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick6", "nick1", "nick7", "챌린지5", "초대 받은 챌린지 페이징5", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick7", "nick1", "nick8", "챌린지6", "초대 받은 챌린지 페이징6", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick7", "nick1", "nick8", "챌린지6", "초대 받은 챌린지 페이징6", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick8", "nick1", "nick9", "챌린지7", "초대 받은 챌린지 페이징7", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick8", "nick1", "nick9", "챌린지7", "초대 받은 챌린지 페이징7", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick9", "nick1", "nick10", "챌린지8", "초대 받은 챌린지 페이징8", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick9", "nick1", "nick10", "챌린지8", "초대 받은 챌린지 페이징8", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick10", "nick1", "nick11", "챌린지9", "초대 받은 챌린지 페이징9", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick10", "nick1", "nick11", "챌린지9", "초대 받은 챌린지 페이징9", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick11", "nick1", "nick12", "챌린지10", "초대 받은 챌린지 페이징10", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick11", "nick1", "nick12", "챌린지10", "초대 받은 챌린지 페이징10", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick12", "nick1", "nick13", "챌린지11", "초대 받은 챌린지 페이징11", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick12", "nick1", "nick13", "챌린지11", "초대 받은 챌린지 페이징11", ChallengeScoreType.WIDEN, null);
 
             final int size = 3;
 
@@ -243,13 +243,13 @@ public class ChallengeListReadTest {
             System.out.println(">>> 초대 받은 챌린지 목록 실패: 필수 파라미터 누락 <<< 테스트 START");
 
             //GIVEN
-            dataProvider.createNewChallenge("nick2", "nick1", "nick3", "챌린지1", "초대 받은 챌린지 페이징1", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick2", "nick1", "nick3", "챌린지1", "초대 받은 챌린지 페이징1", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick3", "nick1", "nick4", "챌린지2", "초대 받은 챌린지 페이징2", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick3", "nick1", "nick4", "챌린지2", "초대 받은 챌린지 페이징2", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick4", "nick1", "nick5", "챌린지3", "초대 받은 챌린지 페이징3", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick4", "nick1", "nick5", "챌린지3", "초대 받은 챌린지 페이징3", ChallengeScoreType.WIDEN, null);
             Thread.sleep(1000);
-            dataProvider.createNewChallenge("nick5", "nick1", "nick6", "챌린지4", "초대 받은 챌린지 페이징4", ChallengeType.WIDEN, null);
+            dataProvider.createNewChallenge("nick5", "nick1", "nick6", "챌린지4", "초대 받은 챌린지 페이징4", ChallengeScoreType.WIDEN, null);
 
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add("nickname", "nick1");
@@ -280,11 +280,11 @@ public class ChallengeListReadTest {
             User user4 = userRepository.findByNickname("nick4").get();
             User user5 = userRepository.findByNickname("nick5").get();
 
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회1", 6, "챌린지 목록 조회1", ChallengeType.WIDEN, user1, user2, user3);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회2", 5, "챌린지 목록 조회2", ChallengeType.WIDEN, user2, user1, user4);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회3", 4, "챌린지 목록 조회3", ChallengeType.ACCUMULATE, user3, user4, user1);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회4", 3, "챌린지 목록 조회4", ChallengeType.WIDEN, user1, user5, user4);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회5", 2, "챌린지 목록 조회5", ChallengeType.ACCUMULATE, user5, user1, user2);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회1", 6, "챌린지 목록 조회1", ChallengeScoreType.WIDEN, user1, user2, user3);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회2", 5, "챌린지 목록 조회2", ChallengeScoreType.WIDEN, user2, user1, user4);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회3", 4, "챌린지 목록 조회3", ChallengeScoreType.ACCUMULATE, user3, user4, user1);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회4", 3, "챌린지 목록 조회4", ChallengeScoreType.WIDEN, user1, user5, user4);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회5", 2, "챌린지 목록 조회5", ChallengeScoreType.ACCUMULATE, user5, user1, user2);
 
             final int size = 5;
 
@@ -335,8 +335,8 @@ public class ChallengeListReadTest {
             User user4 = userRepository.findByNickname("nick4").get();
             String nickname = "nick5";
 
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회1", 6, "챌린지 목록 조회1", ChallengeType.WIDEN, user1, user2, user3);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회2", 5, "챌린지 목록 조회2", ChallengeType.WIDEN, user2, user1, user4);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회1", 6, "챌린지 목록 조회1", ChallengeScoreType.WIDEN, user1, user2, user3);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회2", 5, "챌린지 목록 조회2", ChallengeScoreType.WIDEN, user2, user1, user4);
             final int size = 5;
 
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -377,17 +377,17 @@ public class ChallengeListReadTest {
             User user4 = userRepository.findByNickname("nick4").get();
             User user5 = userRepository.findByNickname("nick5").get();
 
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회1", 6, "챌린지 목록 조회1", ChallengeType.WIDEN, user1, user2, user3);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회2", 5, "챌린지 목록 조회2", ChallengeType.WIDEN, user2, user1, user4);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회3", 4, "챌린지 목록 조회3", ChallengeType.ACCUMULATE, user3, user4, user1);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회4", 3, "챌린지 목록 조회4", ChallengeType.WIDEN, user1, user5, user4);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회5", 2, "챌린지 목록 조회5", ChallengeType.ACCUMULATE, user5, user1, user2);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회6", 2, "챌린지 목록 조회6", ChallengeType.WIDEN, user1, user2, user3);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회7", 3, "챌린지 목록 조회7", ChallengeType.WIDEN, user2, user3, user4);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회8", 4, "챌린지 목록 조회8", ChallengeType.ACCUMULATE, user3, user4, user5);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회9", 5, "챌린지 목록 조회9", ChallengeType.WIDEN, user4, user5, user1);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회10", 6, "챌린지 목록 조회10", ChallengeType.ACCUMULATE, user5, user1, user2);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회11", 7, "챌린지 목록 조회11", ChallengeType.WIDEN, user1, user2, user3);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회1", 6, "챌린지 목록 조회1", ChallengeScoreType.WIDEN, user1, user2, user3);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회2", 5, "챌린지 목록 조회2", ChallengeScoreType.WIDEN, user2, user1, user4);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회3", 4, "챌린지 목록 조회3", ChallengeScoreType.ACCUMULATE, user3, user4, user1);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회4", 3, "챌린지 목록 조회4", ChallengeScoreType.WIDEN, user1, user5, user4);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회5", 2, "챌린지 목록 조회5", ChallengeScoreType.ACCUMULATE, user5, user1, user2);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회6", 2, "챌린지 목록 조회6", ChallengeScoreType.WIDEN, user1, user2, user3);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회7", 3, "챌린지 목록 조회7", ChallengeScoreType.WIDEN, user2, user3, user4);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회8", 4, "챌린지 목록 조회8", ChallengeScoreType.ACCUMULATE, user3, user4, user5);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회9", 5, "챌린지 목록 조회9", ChallengeScoreType.WIDEN, user4, user5, user1);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회10", 6, "챌린지 목록 조회10", ChallengeScoreType.ACCUMULATE, user5, user1, user2);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회11", 7, "챌린지 목록 조회11", ChallengeScoreType.WIDEN, user1, user2, user3);
 
             final int size = 3;
 
@@ -447,9 +447,9 @@ public class ChallengeListReadTest {
             User user3 = userRepository.findByNickname("nick3").get();
             User user4 = userRepository.findByNickname("nick4").get();
 
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회1", 6, "챌린지 목록 조회1", ChallengeType.WIDEN, user1, user2, user3);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회2", 5, "챌린지 목록 조회2", ChallengeType.WIDEN, user2, user1, user4);
-            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회3", 4, "챌린지 목록 조회3", ChallengeType.ACCUMULATE, user3, user4, user1);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회1", 6, "챌린지 목록 조회1", ChallengeScoreType.WIDEN, user1, user2, user3);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회2", 5, "챌린지 목록 조회2", ChallengeScoreType.WIDEN, user2, user1, user4);
+            dataProvider.createDoneChallenge("완료된 챌린지 목록 조회3", 4, "챌린지 목록 조회3", ChallengeScoreType.ACCUMULATE, user3, user4, user1);
 
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add("nickname", "nick1");

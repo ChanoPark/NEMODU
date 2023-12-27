@@ -124,7 +124,7 @@ public class DataProvider {
 
     @Transactional
     public void createNewChallenge(String masterNickname, String member1Nickname, String member2Nickname,
-                                   String challengeName, String message, ChallengeType type, LocalDateTime started) {
+                                   String challengeName, String message, ChallengeScoreType type, LocalDateTime started) {
         Set<String> members = new HashSet<>();
         if (member1Nickname != null) members.add(member1Nickname);
         if (member2Nickname != null) members.add(member2Nickname);
@@ -135,7 +135,7 @@ public class DataProvider {
     }
 
     @Transactional
-    public void createDoneChallenge(String name, long minusWeek, String message, ChallengeType type, User master, User member1, User member2) {
+    public void createDoneChallenge(String name, long minusWeek, String message, ChallengeScoreType type, User master, User member1, User member2) {
         Challenge challenge = Challenge.builder()
                 .uuid(UuidUtil.createUUID())
                 .name(name)
@@ -143,7 +143,7 @@ public class DataProvider {
                 .started(LocalDateTime.now().minusWeeks(minusWeek))
                 .ended(ChallengeService.getSunday(LocalDateTime.now().minusWeeks(minusWeek)))
                 .message(message)
-                .type(type)
+                .scoreType(type)
                 .status(ChallengeStatus.DONE)
                 .build();
 

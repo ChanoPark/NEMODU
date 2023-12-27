@@ -1,6 +1,6 @@
 package com.dnd.ground.domain.challenge.dto;
 
-import com.dnd.ground.domain.challenge.ChallengeType;
+import com.dnd.ground.domain.challenge.ChallengeScoreType;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -18,8 +18,8 @@ import java.util.Set;
  * @description 챌린지 생성과 관련한 Request DTO
  * @author  박찬호
  * @since   2022-08-03
- * @updated 1. 시간 필드 타입 LocalDate -> LocalDateTime으로 변경
- *          - 2023.02.27
+ * @updated 1.ChallengeType -> ChallengeScoreType 클래스명 및 관련 변수명 수정
+ *          - 2023-12-27 박찬호
  */
 
 @Data
@@ -43,7 +43,7 @@ public class ChallengeCreateRequestDto {
     private LocalDateTime started;
 
     @ApiModelProperty(value="챌린지 종류(영역: WIDEN || 칸: ACCUMULATE)", example="ACCUMULATE", required = true)
-    private ChallengeType type;
+    private ChallengeScoreType scoreType;
 
     @Size(min=1, max = 3, message = "함께하는 친구는 1~3명까지 가능합니다.")
     @ApiModelProperty(value="함께하는 친구 닉네임 리스트", example="[NickB, NickC]", required = true)

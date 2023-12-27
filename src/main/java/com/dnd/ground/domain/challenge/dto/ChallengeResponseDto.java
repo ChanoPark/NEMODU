@@ -1,8 +1,8 @@
 package com.dnd.ground.domain.challenge.dto;
 
 import com.dnd.ground.domain.challenge.ChallengeColor;
+import com.dnd.ground.domain.challenge.ChallengeScoreType;
 import com.dnd.ground.domain.challenge.ChallengeStatus;
-import com.dnd.ground.domain.challenge.ChallengeType;
 import com.dnd.ground.domain.matrix.dto.Location;
 import com.dnd.ground.domain.user.dto.UserResponseDto;
 import io.swagger.annotations.ApiModelProperty;
@@ -15,10 +15,8 @@ import java.util.List;
  * @description 챌린지와 관련한 Response DTO
  * @author  박찬호
  * @since   2022-08-12
- * @updated 1. @Data 어노테이션 제거
- *          2. 챌린지 상세보기를 위한 Response DTO 이름 변경 (ProgressDetail -> Detail)
- *          3. Detail center 필드 추가
- *          2023-05-22 박찬호
+ * @updated 1.ChallengeType -> ChallengeScoreType 클래스명 및 관련 변수명 수정
+ *          - 2023-12-27 박찬호
  */
 
 public class ChallengeResponseDto {
@@ -162,7 +160,7 @@ public class ChallengeResponseDto {
         private String uuid;
 
         @ApiModelProperty(value="챌린지 종류(영역:Widen || 칸:Accumulate)", example="Widen")
-        private ChallengeType type;
+        private ChallengeScoreType scoreType;
 
         @ApiModelProperty(value="챌린지 색상(Red, Pink, Yellow)", example="Pink")
         private ChallengeColor color;
@@ -204,7 +202,7 @@ public class ChallengeResponseDto {
         private String name;
 
         @ApiModelProperty(value="챌린지 종류(영역:Widen || 칸:Accumulate)", example="Widen")
-        private ChallengeType type;
+        private ChallengeScoreType scoreType;
 
         @ApiModelProperty(value="챌린지 색상(Red, Pink, Yellow)", example="Pink")
         private ChallengeColor color;

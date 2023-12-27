@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
  * @author 박찬호
  * @description 챌린지와 관련된 서비스의 역할을 분리한 구현체
  * @since 2022-08-03
- * @updated 1. 각 회원별 챌린지 시작-종료 시간 관리 추가
- *          - 2023-12-21 박찬호
+ * @updated 1.ChallengeType -> ChallengeScoreType 클래스명 및 관련 변수명 수정
+ *          - 2023-12-27 박찬호
  */
 
 @Slf4j
@@ -83,7 +83,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                 .started(requestDto.getStarted())
                 .ended(ChallengeService.getSunday(requestDto.getStarted()))
                 .message(requestDto.getMessage())
-                .type(requestDto.getType())
+                .scoreType(requestDto.getScoreType())
                 .build();
 
         //챌린지 저장
@@ -378,7 +378,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         return ChallengeResponseDto.WaitDetail.builder()
                 .name(challenge.getName())
-                .type(challenge.getType())
+                .scoreType(challenge.getScoreType())
                 .color(colors.get(challenge))
                 .started(challenge.getStarted())
                 .ended(challenge.getEnded())
@@ -436,7 +436,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         return ChallengeResponseDto.Detail.builder()
                 .name(challenge.getName())
                 .uuid(UuidUtil.bytesToHex(challenge.getUuid()))
-                .type(challenge.getType())
+                .scoreType(challenge.getScoreType())
                 .started(started)
                 .ended(ended)
                 .color(userChallengeRepository.findChallengeColor(user, challenge))

@@ -106,7 +106,7 @@ class ChallengeCreateTest {
             String message = "챌린지 생성 테스트입니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
             LocalDateTime sunday = ChallengeService.getSunday(started);
-            ChallengeType type = ChallengeType.ACCUMULATE;
+            ChallengeScoreType type = ChallengeScoreType.ACCUMULATE;
 
             Set<String> memberNicknames = new HashSet<>();
             memberNicknames.add(member1Nickname);
@@ -151,7 +151,7 @@ class ChallengeCreateTest {
             assertThat(challenge.getStarted()).isEqualTo(started);
             assertThat(challenge.getEnded()).isEqualTo(sunday);
             assertThat(challenge.getMessage()).isEqualTo(message);
-            assertThat(challenge.getType()).isEqualTo(type);
+            assertThat(challenge.getScoreType()).isEqualTo(type);
             assertThat(challenge.getName()).isEqualTo(challengeName);
 
             //멤버 초대 확인
@@ -202,7 +202,7 @@ class ChallengeCreateTest {
             String challengeName = "챌린지 생성 실패: 멤버 초과";
             String message = "멤버 수가 최대 4명까지 입니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
-            ChallengeType type = ChallengeType.ACCUMULATE;
+            ChallengeScoreType type = ChallengeScoreType.ACCUMULATE;
 
             Set<String> memberNicknames = new HashSet<>();
             memberNicknames.add(member1Nickname);
@@ -233,7 +233,7 @@ class ChallengeCreateTest {
             String challengeName = "챌린지 생성 실패: 멤버 없음";
             String message = "멤버 1명은 꼭 필요합니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
-            ChallengeType type = ChallengeType.ACCUMULATE;
+            ChallengeScoreType type = ChallengeScoreType.ACCUMULATE;
 
             Set<String> memberNicknames = new HashSet<>();
 
@@ -261,7 +261,7 @@ class ChallengeCreateTest {
             String challengeName = "챌린지 생성 실패: 시작 날짜가 올바르지 않음.";
             String message = "내일부터 시작 가능합니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
-            ChallengeType type = ChallengeType.ACCUMULATE;
+            ChallengeScoreType type = ChallengeScoreType.ACCUMULATE;
 
             Set<String> memberNicknames = new HashSet<>();
             memberNicknames.add(member1Nickname);
@@ -312,7 +312,7 @@ class ChallengeCreateTest {
             String challengeName = "챌린지 수락 테스트";
             String message = "챌린지 수락 테스트입니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
-            ChallengeType type = ChallengeType.WIDEN;
+            ChallengeScoreType type = ChallengeScoreType.WIDEN;
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
@@ -357,7 +357,7 @@ class ChallengeCreateTest {
             String challengeName = "챌린지 거절 테스트";
             String message = "챌린지 거절 테스트입니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
-            ChallengeType type = ChallengeType.WIDEN;
+            ChallengeScoreType type = ChallengeScoreType.WIDEN;
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
@@ -404,7 +404,7 @@ class ChallengeCreateTest {
             String challengeName = "챌린지 수락 실패 테스트";
             String message = "챌린지 수락 실패 테스트입니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
-            ChallengeType type = ChallengeType.WIDEN;
+            ChallengeScoreType type = ChallengeScoreType.WIDEN;
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
@@ -451,7 +451,7 @@ class ChallengeCreateTest {
             String challengeName = "챌린지 수락 실패 테스트";
             String message = "챌린지 수락 실패 테스트입니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
-            ChallengeType type = ChallengeType.WIDEN;
+            ChallengeScoreType type = ChallengeScoreType.WIDEN;
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
@@ -498,7 +498,7 @@ class ChallengeCreateTest {
             String challengeName = "챌린지 수락 실패 테스트";
             String message = "챌린지 수락 실패 테스트입니다.";
             LocalDateTime started = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.MIN);
-            ChallengeType type = ChallengeType.WIDEN;
+            ChallengeScoreType type = ChallengeScoreType.WIDEN;
 
             //챌린지 생성
             challengeService.createChallenge(new ChallengeCreateRequestDto(masterNickname, challengeName, message, started, type, members));
