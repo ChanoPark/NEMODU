@@ -56,8 +56,8 @@ public class JWTReissueFilter extends UsernamePasswordAuthenticationFilter {
 
     private static final String BEARER = "Bearer ";
     private static final String REFRESH_TOKEN = "Refresh-Token";
-    private static final String KAKAO_ACCESS_TOKEN = "KAKAO_ACCESS_TOKEN";
-    private static final String KAKAO_REFRESH_TOKEN = "KAKAO_REFRESH_TOKEN";
+    private static final String KAKAO_ACCESS_TOKEN = "Kakao-Access-Token";
+    private static final String KAKAO_REFRESH_TOKEN = "Kakao-Refresh-Token";
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,

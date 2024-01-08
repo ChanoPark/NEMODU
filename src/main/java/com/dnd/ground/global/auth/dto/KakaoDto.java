@@ -81,6 +81,7 @@ public class KakaoDto {
     public static class KakaoFriendResponse {
         @ApiModelProperty(value="마지막 페이지인지 여부", example="true")
         private Boolean isLast;
+
         private List<KakaoFriend> friends;
 
         @ApiModelProperty(value="다음 친구 목록 요청시 필요한 offset", example="16")

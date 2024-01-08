@@ -8,7 +8,6 @@ import com.dnd.ground.global.exception.AuthException;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-;
 import java.sql.Date;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -16,7 +15,6 @@ import java.time.LocalDateTime;
 import static com.dnd.ground.global.exception.ExceptionCodeSet.*;
 
 /**
-
  * @description 토큰 생성 및 유효성 검사를 위한 Util
  * @author 박찬호
  * @since 2023-01-21
