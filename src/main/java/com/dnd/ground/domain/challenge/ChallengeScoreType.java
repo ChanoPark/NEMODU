@@ -1,7 +1,7 @@
 package com.dnd.ground.domain.challenge;
 
 /**
- * @description 일주일 챌린지 종류
+ * @description 챌린지 점수 계산 방식
  *              ACCUMULATE  - 칸 많이 누적하기
  *              WIDEN       - 영역 넓히기
  * @author  박찬호
