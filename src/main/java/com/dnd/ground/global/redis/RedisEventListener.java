@@ -1,16 +1,11 @@
 package com.dnd.ground.global.redis;
 
-import com.dnd.ground.global.notification.NotificationService;
-import com.dnd.ground.global.notification.repository.FcmTokenRepository;
-import com.dnd.ground.global.util.DeviceType;
+import com.dnd.ground.global.util.ApplicationContextProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @description Redis Expire Event Listener
@@ -24,26 +19,20 @@ import java.util.regex.Pattern;
 @Component
 @RequiredArgsConstructor
 public class RedisEventListener implements MessageListener {
-    private final FcmTokenRepository fcmTokenRepository;
-    private static final Pattern fcmPattern = Pattern.compile("^fcm.*$");
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
-        Matcher fcmMatcher = fcmPattern.matcher(message.toString());
+        log.debug(">>> Redis expired key event: {}", message);
+        EventExpireSubscriber eventExpireSubscriber;
+        String messageStr = message.toString();
 
-        if (fcmMatcher.find()) {
-            String[] keyAndValue = fcmMatcher.group().split(":");
-
-            if (keyAndValue.length != 2) {
-                log.warn("FCM 토큰 만료 이벤트의 메시지가 올바르지 않습니다: {}", message);
-                return;
-            }
-
-            String nickname = keyAndValue[1];
-            DeviceType type = DeviceType.getType(keyAndValue[0].split("_")[1]);
-
-            String token = fcmTokenRepository.findToken(nickname, type);
-            NotificationService.requestReissueFCMToken(nickname, token);
+        if (RedisKeyConstant.FCM_PATTERN.find(messageStr)) {
+            eventExpireSubscriber = ApplicationContextProvider.getBean(FCMEventSubscriber.class);
+        } else {
+            log.warn("Not found EventListener. meg:{}\tpattern:{}", message, new String(pattern));
+            return ;
         }
+
+        eventExpireSubscriber.handleExpireEvent(message.toString());
     }
 }
