@@ -14,10 +14,10 @@ import java.util.List;
 
 /**
  * @description 회원 엔티티
- * @author  박찬호, 박세헌
+ * @author  박찬호
  * @since   2022.07.28
- * @updated 1. 카카오 리프레시 토큰 추가
- *  *          - 2022-09-12 박찬호
+ * @updated 1.회원 탈퇴를 위해, 참여 중인 챌린지를 지우는 메소드 구현
+ *           - 2023-05-22 박찬호
  */
 
 @Getter
@@ -32,17 +32,14 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(name = "kakao_id")
-    private Long kakaoId;
-
     @Column(name = "nickname", nullable = false, unique = true)
     private String nickname;
 
     @Email
-    @Column(unique = true)
-    private String mail;
+    @Column(name="email", unique = true, nullable = false)
+    private String email;
 
-    @Column
+    @Column(name="intro")
     private String intro;
 
     @Column(name = "user_latitude")
@@ -54,38 +51,30 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime created;
 
-    @Column(name="is_show_mine", nullable = false)
-    private Boolean isShowMine;
-
-    @Column(name="is_show_friend", nullable = false)
-    private Boolean isShowFriend;
-
-    @Column(name="is_public_record", nullable = false)
-    private Boolean isPublicRecord;
-
-    /**
-     * 카카오 프로필 사진 → S3 저장X | 파일 이름: kakao/카카오회원번호
-     * 자체 프로필 사진 → S3 저장 | 파일 이름: user/profile/닉네임-생성시간
-     */
     @Column(name="picture_name", nullable = false)
     private String pictureName;
 
     @Column(name="picture_path", nullable = false)
     private String picturePath;
 
-    @Column(name="refresh_token")
-    private String refreshToken;
+    @Enumerated(EnumType.STRING)
+    @Column(name="login_type")
+    private LoginType loginType;
 
-    @Column(name = "kakao_refresh_token")
-    private String kakaoRefreshToken;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "property_id")
+    private UserProperty property;
 
-    @OneToMany(mappedBy = "friend")
+    @OneToMany(mappedBy = "friend", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Friend> friends = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+    @Builder.Default
     private List<UserChallenge> challenges = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<ExerciseRecord> exerciseRecords = new ArrayList<>();
 
     //마지막 위치 최신화
@@ -94,36 +83,20 @@ public class User {
         this.longitude = longitude;
     }
 
-    //"나의 기록 보기" 필터 변경
-    public Boolean changeFilterMine() {
-        this.isShowMine = !this.isShowMine;
-        return this.isShowMine;
-    }
-
-    //"친구 보기" 필터 변경
-    public Boolean changeFilterFriend() {
-        this.isShowFriend = !this.isShowFriend;
-        return this.isShowFriend;
-    }
-
-    //"친구들에게 보이기" 필터 변경
-    public Boolean changeFilterRecord() {
-        this.isPublicRecord = !this.isPublicRecord;
-        return this.isPublicRecord;
-    }
-
-    public void updateProfile(String nickname, String intro) {
+    //프로필 수정
+    public void updateProfile(String nickname, String intro, String pictureName, String picturePath) {
         this.nickname = nickname;
         this.intro = intro;
-    }
-
-    //프로필 사진 변경
-    public void updatePicture(String pictureName, String picturePath) {
         this.pictureName = pictureName;
         this.picturePath = picturePath;
     }
 
-    public void updateRefreshToken(String refreshToken){
-        this.refreshToken = refreshToken;
+    public void setUserProperty(UserProperty property) {
+        this.property = property;
+        property.setUser(this);
+    }
+
+    public void clearChallenges() {
+        this.challenges.clear();
     }
 }

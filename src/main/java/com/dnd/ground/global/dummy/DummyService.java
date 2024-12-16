@@ -1,5 +1,6 @@
 package com.dnd.ground.global.dummy;
 
+import com.dnd.ground.domain.challenge.Challenge;
 import com.dnd.ground.domain.challenge.UserChallenge;
 import com.dnd.ground.domain.challenge.repository.ChallengeRepository;
 import com.dnd.ground.domain.challenge.repository.UserChallengeRepository;
@@ -8,12 +9,12 @@ import com.dnd.ground.domain.exerciseRecord.Repository.ExerciseRecordRepository;
 import com.dnd.ground.domain.friend.Friend;
 import com.dnd.ground.domain.friend.repository.FriendRepository;
 import com.dnd.ground.domain.matrix.Matrix;
-import com.dnd.ground.domain.matrix.matrixRepository.MatrixRepository;
+import com.dnd.ground.domain.matrix.repository.MatrixRepository;
 import com.dnd.ground.domain.user.User;
 import com.dnd.ground.domain.user.repository.UserRepository;
-import com.dnd.ground.global.exception.CNotFoundException;
-import com.dnd.ground.global.exception.CommonErrorCode;
+import com.dnd.ground.global.exception.*;
 import com.dnd.ground.global.util.JwtUtil;
+import com.dnd.ground.global.util.UuidUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +29,10 @@ import java.util.List;
  * @description 더미 데이터 생성을 위한 서비스
  * @author  박찬호
  * @since   2022-10-04
- * @updated 1. 회원, 운동 기록, 영역과 관련된 로직 생성
- *          - 2022.10.04 박찬호
+ * @updated 1.챌린지 uuid 조회
+ *          2.챌린지 상태 변경
+ *          3.UC 상태 변경
+ *          - 2022.11.23 박찬호
  */
 
 @RequiredArgsConstructor
@@ -45,7 +48,7 @@ public class DummyService {
     /*더미 유저 조회*/
     public ResponseEntity<?> getDummyUser(String nickname) {
         User user = userRepository.findByNickname(nickname).orElseThrow(
-                () -> new CNotFoundException(CommonErrorCode.NOT_FOUND_USER)
+                () -> new UserException(ExceptionCodeSet.USER_NOT_FOUND)
         );
 
         return ResponseEntity.ok()
@@ -53,7 +56,7 @@ public class DummyService {
                         .nickname(nickname)
                         .created(user.getCreated())
                         .intro(user.getIntro())
-                        .mail(user.getMail())
+                        .mail(user.getEmail())
                         .latitude(user.getLatitude())
                         .longitude(user.getLongitude())
                         .isShowMine(user.getIsShowMine())
@@ -61,7 +64,6 @@ public class DummyService {
                         .isPublicRecord(user.getIsPublicRecord())
                         .pictureName(user.getPictureName())
                         .picturePath(user.getPicturePath())
-                        .refreshToken(user.getRefreshToken())
                         .build()
                 );
     }
@@ -70,17 +72,14 @@ public class DummyService {
     @Transactional
     public ResponseEntity<?> createDummyUser(DummyRequestDto.DummyUser request) {
 
-        String accessToken = JwtUtil.makeAccessToken(request.getNickname());
-        String refreshToken = JwtUtil.makeRefreshToken(request.getNickname());
+        String accessToken = JwtUtil.createAccessToken(request.getNickname(), LocalDateTime.now());
+        String refreshToken = JwtUtil.createRefreshToken(request.getNickname(), LocalDateTime.now());
 
         try {
             userRepository.save(
                     User.builder()
-                            .kakaoId(12345L)
-                            .kakaoRefreshToken("DummyKakaoRefresh")
-                            .refreshToken(refreshToken)
                             .nickname(request.getNickname())
-                            .mail(request.getMail())
+                            .email(request.getMail())
                             .created(LocalDateTime.now())
                             .intro(request.getIntro())
                             .latitude(null)
@@ -112,7 +111,7 @@ public class DummyService {
     public ResponseEntity<?> deleteDummyUser(String nickname) {
 
         User user = userRepository.findByNickname(nickname).orElseThrow(
-                () -> new CNotFoundException(CommonErrorCode.NOT_FOUND_USER)
+                () -> new UserException(ExceptionCodeSet.USER_NOT_FOUND)
         );
 
 
@@ -143,7 +142,7 @@ public class DummyService {
     /*운동 기록 조회*/
     public ResponseEntity<?> getDummyRecords(String nickname) {
         User user = userRepository.findByNickname(nickname).orElseThrow(
-                () -> new CNotFoundException(CommonErrorCode.NOT_FOUND_USER)
+                () -> new UserException(ExceptionCodeSet.USER_NOT_FOUND)
         );
 
         List<ExerciseRecord> records = exerciseRecordRepository.findRecordsByUser(user);
@@ -173,7 +172,7 @@ public class DummyService {
     public ResponseEntity<?> createDummyRecord(DummyRequestDto.DummyRecord request) {
 
         User user = userRepository.findByNickname(request.getNickname()).orElseThrow(
-                () -> new CNotFoundException(CommonErrorCode.NOT_FOUND_USER)
+                () -> new UserException(ExceptionCodeSet.USER_NOT_FOUND)
         );
 
         //운동 기록 생성
@@ -204,7 +203,7 @@ public class DummyService {
     @Transactional
     public ResponseEntity<?> insertDummyMatrix(DummyRequestDto.DummyRecordMatrix request) {
         ExerciseRecord record = exerciseRecordRepository.findById(request.getRecordId()).orElseThrow(
-                () -> new CNotFoundException(CommonErrorCode.NOT_FOUND_RECORD)
+                () -> new ExerciseRecordException(ExceptionCodeSet.RECORD_NOT_FOUND)
         );
 
         ArrayList<ArrayList<Double>> matrices = request.getMatrices();
@@ -220,7 +219,7 @@ public class DummyService {
     /*영역 조회*/
     public ResponseEntity<?> getDummyMatrices(Long recordId) {
         ExerciseRecord record = exerciseRecordRepository.findById(recordId).orElseThrow(
-                () -> new CNotFoundException(CommonErrorCode.NOT_FOUND_RECORD)
+                () -> new ExerciseRecordException(ExceptionCodeSet.RECORD_NOT_FOUND)
         );
 
         DummyResponseDto.DummyMatricesInfo response = new DummyResponseDto.DummyMatricesInfo();
@@ -243,7 +242,7 @@ public class DummyService {
     @Transactional
     public ResponseEntity<?> deleteDummyRecord(Long recordId) {
         ExerciseRecord record = exerciseRecordRepository.findById(recordId).orElseThrow(
-                () -> new CNotFoundException(CommonErrorCode.NOT_FOUND_RECORD)
+                () -> new ExerciseRecordException(ExceptionCodeSet.RECORD_NOT_FOUND)
         );
 
         List<Matrix> matrices = matrixRepository.findByRecord(record);
@@ -252,5 +251,37 @@ public class DummyService {
 
         return ResponseEntity.ok()
                 .body(true);
+    }
+
+    /*챌린지 상태 변경*/
+    @Transactional
+    public ResponseEntity<?> changeChallengeStatus(DummyRequestDto.DummyChallengeStatus request) {
+        Challenge challenge = challengeRepository.findByUuid(UuidUtil.hexToBytes(request.getUuid()))
+                .orElseThrow(() -> new ChallengeException(ExceptionCodeSet.CHALLENGE_NOT_FOUND)
+        );
+
+        challenge.updateStatus(request.getStatus());
+
+        return ResponseEntity.ok(true);
+    }
+
+    /*챌린지에 참여하는 회원의 상태 변경*/
+    @Transactional
+    public ResponseEntity<?> changeUCStatus(DummyRequestDto.DummyUCStatus request) {
+        User user = userRepository.findByNickname(request.getNickname()).orElseThrow(
+                () -> new UserException(ExceptionCodeSet.USER_NOT_FOUND)
+        );
+
+        Challenge challenge = challengeRepository.findByUuid(UuidUtil.hexToBytes(request.getUuid()))
+                .orElseThrow(() -> new ChallengeException(ExceptionCodeSet.CHALLENGE_NOT_FOUND)
+        );
+
+        UserChallenge userChallenge = userChallengeRepository.findByUserAndChallenge(user, challenge).orElseThrow(
+                () -> new ChallengeException(ExceptionCodeSet.USER_CHALLENGE_NOT_FOUND, user.getNickname())
+        );
+
+        userChallenge.changeStatus(request.getStatus());
+
+        return ResponseEntity.ok(true);
     }
 }

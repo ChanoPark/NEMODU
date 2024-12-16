@@ -14,8 +14,8 @@ import java.util.List;
  * @description 운동 기록 엔티티
  * @author  박찬호, 박세헌
  * @since   2022-07-27
- * @updated 1.Builder 추가
- *          -2022.10.02 박찬호
+ * @updated 1.기록 업데이트 메소드 삭제
+ *          2023-03-05 박찬호
  */
 
 @Getter
@@ -53,6 +53,7 @@ public class ExerciseRecord {
     private User user;
 
     @OneToMany(mappedBy = "exerciseRecord", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Matrix> matrices = new ArrayList<>();
 
     public ExerciseRecord(User user) {
@@ -61,7 +62,8 @@ public class ExerciseRecord {
         this.stepCount = 0;
         this.ended = LocalDateTime.now();
         this.user = user;
-        this.started = LocalDateTime.now()  ;
+        this.started = LocalDateTime.now();
+        this.matrices = new ArrayList<>();
     }
 
     // 칸 추가
@@ -70,20 +72,8 @@ public class ExerciseRecord {
         matrix.belongRecord(this);
     }
 
-    // 정보 추가
-    public void updateInfo(Integer distance, Integer stepCount,
-                           Integer second, String message, LocalDateTime started, LocalDateTime ended){
-        this.started = started;
-        this.ended = ended;
-        this.distance = distance;
-        this.stepCount = stepCount;
-        this.exerciseTime = second;
-        this.message = message;
-    }
-
     // 메시지 수정
     public void editMessage(String message){
         this.message = message;
     }
-
 }

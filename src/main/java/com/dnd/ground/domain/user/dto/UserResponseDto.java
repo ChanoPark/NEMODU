@@ -2,31 +2,25 @@ package com.dnd.ground.domain.user.dto;
 
 import com.dnd.ground.domain.challenge.ChallengeColor;
 import com.dnd.ground.domain.exerciseRecord.dto.RecordResponseDto;
-import com.dnd.ground.domain.matrix.dto.MatrixDto;
-import com.dnd.ground.domain.user.User;
 
+import com.dnd.ground.domain.matrix.dto.Location;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @description 유저 Response Dto
- *              1. 유저(나) 매트릭스 및 정보
- *              2. 나와 챌린지 안하는 친구들 매트릭스
- *              3. 나와 챌린지 하는 친구들 매트릭스 및 정보
- *              4. 랭킹 정보
  * @author  박세헌, 박찬호
  * @since   2022-08-08
- * @updated 1. 프로필 사진 추가 - 2022-10-10 박세헌
+ * @updated 1. @Data 제거
+ *          2. 회원의 알람 필터 조회 DTO 생성
+ *          - 2023-03-07 박찬호
  */
 
-@Data
 public class UserResponseDto {
-
-    @Data
+    @Getter
     @AllArgsConstructor
     public static class UInfo {
         @ApiModelProperty(value = "닉네임", example = "NickA")
@@ -35,16 +29,10 @@ public class UserResponseDto {
         @ApiModelProperty(value="프로필 사진 URI(카카오 프로필 사용 시 kakao/카카오회원번호)", example="http:\\/\\/k.kakaocdn.net\\/dn\\/uQVeo\\/btrLgESJyjg\\/Pff3k36lRWkQ98ebAlexv1\\/img_640x640.jpg")
         private String picturePath;
     }
-
-    /*회원가입 Response*/
-    @Data
-    public static class SignUp {
-        private String nickname;
-    }
     
-    /*회원의 정보 관련 DTO*/
-    @Data @Builder
-    static public class Profile {
+    /*마이페이지 관련 DTO*/
+    @Getter @Builder
+    static public class MyPage {
         @ApiModelProperty(value = "닉네임", example = "NickA")
         private String nickname;
 
@@ -55,10 +43,10 @@ public class UserResponseDto {
         private Long matrixNumber;
 
         @ApiModelProperty(value = "이번주 총 걸음 수", example = "1030")
-        private Integer stepCount;
+        private Long stepCount;
 
         @ApiModelProperty(value = "이번주 총 거리", example = "200")
-        private Integer distance;
+        private Long distance;
 
         @ApiModelProperty(value = "친구 수", example = "2")
         private Integer friendNumber;
@@ -70,8 +58,28 @@ public class UserResponseDto {
         private String picturePath;
     }
 
+    /*유저의 프로필 관련 DTO*/
+    @Getter @Builder
+    static public class Profile {
+        @ApiModelProperty(value = "닉네임", example = "NickA")
+        private String nickname;
+
+        @ApiModelProperty(value = "소개 메시지", example = "소개 메시지 예시입니다.")
+        private String intro;
+
+        @ApiModelProperty(value = "유저 메일", example = "A-mail@gmail.com")
+        private String mail;
+
+        @ApiModelProperty(value="프로필 사진 URI(카카오 프로필 사용 시 kakao/카카오회원번호)", example="http:\\/\\/k.kakaocdn.net\\/dn\\/uQVeo\\/btrLgESJyjg\\/Pff3k36lRWkQ98ebAlexv1\\/img_640x640.jpg")
+        private String picturePath;
+    }
+
     /*회원의 영역 정보 관련 DTO*/
-    @Data
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    @Builder
+    @ToString
     static public class UserMatrix {
         @ApiModelProperty(value = "닉네임", example = "NickA")
         private String nickname;
@@ -86,50 +94,16 @@ public class UserResponseDto {
         private Double longitude;
 
         @ApiModelProperty(value = "칸 꼭지점 위도, 경도 리스트", example = "[{\"latitude\": 37.330436, \"longitude\": -122.030216}]")
-        private List<MatrixDto> matrices;
+        private List<Location> matrices;
 
         @ApiModelProperty(value="프로필 사진 URI(카카오 프로필 사용 시 kakao/카카오회원번호)", example="http:\\/\\/k.kakaocdn.net\\/dn\\/uQVeo\\/btrLgESJyjg\\/Pff3k36lRWkQ98ebAlexv1\\/img_640x640.jpg")
         private String picturePath;
-
-        //생성자
-        public UserMatrix(User user) {
-            this.nickname = user.getNickname();
-            this.matricesNumber = 0L;
-
-            this.latitude = 0.0;
-            this.longitude = 0.0;
-        }
-
-        //수정자 모음 (프로필 사진 x)
-        public void setProperties(String nickname, long matricesNumber, List<MatrixDto> matrices, Double lat, Double lon) {
-            this.setNickname(nickname);
-            this.setMatricesNumber(matricesNumber);
-            this.setMatrices(matrices);
-            this.setLatitude(lat);
-            this.setLongitude(lon);
-        }
-
-        //수정자 모음 (프로필 사진 o)
-        public void setProperties(String nickname, long matricesNumber, List<MatrixDto> matrices, Double lat, Double lon, String picturePath) {
-            this.setNickname(nickname);
-            this.setMatricesNumber(matricesNumber);
-            this.setMatrices(matrices);
-            this.setLatitude(lat);
-            this.setLongitude(lon);
-            this.setPicturePath(picturePath);
-        }
-
-        public void setProperties(String nickname, long matricesNumber, Double lat, Double lon) {
-            this.setNickname(nickname);
-            this.setMatricesNumber(matricesNumber);
-            this.setLatitude(lat);
-            this.setLongitude(lon);
-            this.matrices = new ArrayList<>();
-        }
     }
 
     /*친구의 영역 관련 DTO*/
-    @Data @AllArgsConstructor
+    @Getter
+    @Builder
+    @AllArgsConstructor
     static public class FriendMatrix{
         @ApiModelProperty(value = "닉네임", example = "NickB", required = true)
         private String nickname;
@@ -141,21 +115,22 @@ public class UserResponseDto {
         private Double longitude;
 
         @ApiModelProperty(value = "칸 꼭지점 위도, 경도 리스트", required = true)
-        private List<MatrixDto> matrices;
+        private List<Location> matrices;
 
         @ApiModelProperty(value="프로필 사진 URI(카카오 프로필 사용 시 kakao/카카오회원번호)", example="http:\\/\\/k.kakaocdn.net\\/dn\\/uQVeo\\/btrLgESJyjg\\/Pff3k36lRWkQ98ebAlexv1\\/img_640x640.jpg")
         private String picturePath;
     }
 
     /*챌린지 영역 정보 관련 DTO*/
-    @Data
+    @Getter
+    @Builder
     @AllArgsConstructor
     static public class ChallengeMatrix{
         @ApiModelProperty(value = "닉네임", example = "NickC", required = true)
         private String nickname;
 
         @ApiModelProperty(value = "나와 같이 하는 챌린지 개수", example = "1", required = true)
-        private Integer challengeNumber;
+        private Long challengeNumber;
 
         @ApiModelProperty(value = "지도에 나타나는 챌린지 대표 색깔", example = "Pink", required = true)
         private ChallengeColor challengeColor;
@@ -167,14 +142,14 @@ public class UserResponseDto {
         private Double longitude;
 
         @ApiModelProperty(value = "칸 꼭지점 위도, 경도 리스트", example = "[{\"latitude\": 37.330436, \"longitude\": -122.030216}]",  required = true)
-        private List<MatrixDto> matrices;
+        private List<Location> matrices;
 
         @ApiModelProperty(value="프로필 사진 URI(카카오 프로필 사용 시 kakao/카카오회원번호)", example="http:\\/\\/k.kakaocdn.net\\/dn\\/uQVeo\\/btrLgESJyjg\\/Pff3k36lRWkQ98ebAlexv1\\/img_640x640.jpg")
         private String picturePath;
     }
 
-    /*랭킹과 관련된 DTO (추후 프로필 사진 필드 추가해야됨)*/
-    @Data
+    /*랭킹과 관련된 DTO*/
+    @Getter
     @AllArgsConstructor
     public static class Ranking {
         @ApiModelProperty(value = "랭크", example = "1", required = true)
@@ -191,7 +166,7 @@ public class UserResponseDto {
     }
 
     /*상세 지도 DTO*/
-    @Data
+    @Getter
     @AllArgsConstructor
     public static class DetailMap {
         @ApiModelProperty(value = "사용자의 마지막 위치(위도)", example = "37.123123", required = true)
@@ -201,24 +176,65 @@ public class UserResponseDto {
         private Double longitude;
 
         @ApiModelProperty(value = "칸 꼭지점 위도, 경도 리스트", example = "[{\"latitude\": 37.330436, \"longitude\": -122.030216}]",required = true)
-        private List<MatrixDto> matrices;
+        private List<Location> matrices;
 
         @ApiModelProperty(value="프로필 사진 URI(카카오 프로필 사용 시 kakao/카카오회원번호)", example="http:\\/\\/k.kakaocdn.net\\/dn\\/uQVeo\\/btrLgESJyjg\\/Pff3k36lRWkQ98ebAlexv1\\/img_640x640.jpg")
         private String picturePath;
     }
 
     /* 나의 활동 기록에서 기록이 있는 날짜 리스트 */
-    @Data
     @AllArgsConstructor
+    @Getter
     static public class dayEventList{
         @ApiModelProperty(name = "기록이 있는 날짜 리스트", example = "[2022-09-01, 2022-09-02]", dataType = "list")
         private List<LocalDate> eventList;
     }
 
     /* 나의 활동 기록 조회 */
-    @Data @Builder
+    @AllArgsConstructor
+    @Getter
     static public class ActivityRecordResponseDto {
         @ApiModelProperty(value = "해당 날짜에 존재하는 활동 내역 정보(운동 기록 정보)")
         List<RecordResponseDto.activityRecord> activityRecords;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    static public class NotificationFilters {
+        @ApiModelProperty(name = "회원 알람 필터: 새로운 주차 시작 알림", example = "true")
+        private Boolean notiWeekStart;
+
+        @ApiModelProperty(name = "회원 알람 필터: 주차 종료 알림", example = "false")
+        private Boolean notiWeekEnd;
+
+        @ApiModelProperty(name = "회원 알람 필터: 친구 요청 알림", example = "true")
+        private Boolean notiFriendRequest;
+
+        @ApiModelProperty(name = "회원 알람 필터: 친구 요청 수락 알림", example = "false")
+        private Boolean notiFriendAccept;
+
+        @ApiModelProperty(name = "회원 알람 필터: 챌린지 초대 알림", example = "true")
+        private Boolean notiChallengeRequest;
+
+        @ApiModelProperty(name = "회원 알람 필터: 챌린지 수락 알림", example = "false")
+        private Boolean notiChallengeAccept;
+
+        @ApiModelProperty(name = "회원 알람 필터: 챌린지 진행 알림", example = "true")
+        private Boolean notiChallengeStart;
+
+        @ApiModelProperty(name = "회원 알람 필터: 챌린지 취소 알림", example = "true")
+        private Boolean notiChallengeCancel;
+
+        @ApiModelProperty(name = "회원 알람 필터: 챌린지 결과 알림", example = "true")
+        private Boolean notiChallengeResult;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    public static class Filter {
+        private Boolean value;
     }
 }
