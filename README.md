@@ -1,8 +1,5 @@
 # 🏃 땅따먹기 기반 운동 장려 애플리케이션 NEMODU
 >DND 7기 프로젝트 (2022.08~)
-
-### License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FChanoPark%2Fdnd-7th-1-backend.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FChanoPark%2Fdnd-7th-1-backend?ref=badge_large)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FChanoPark%2Fdnd-7th-1-backend.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FChanoPark%2Fdnd-7th-1-backend?ref=badge_shield)
 
 <details>
