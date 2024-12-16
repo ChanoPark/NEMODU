@@ -1,11 +1,14 @@
 # 🏃 땅따먹기 기반 운동 장려 애플리케이션 NEMODU
 >DND 7기 프로젝트 (2022.08~)
+>
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FChanoPark%2Fdnd-7th-1-backend.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FChanoPark%2Fdnd-7th-1-backend?ref=badge_shield)
 
 <details>
-    <summary><b><h2>프로젝트 프로젝트 보기</h2> <a href="https://www.youtube.com/watch?v=gFkrgJt2ttQ">시연 영상 📺</a></b></summary>
+    <summary><h3><b>프로젝트 설명 보기 </b></h3></summary>
 <div markdown="1">
 
+<a href="https://www.youtube.com/watch?v=gFkrgJt2ttQ">시연 영상 📺</a>
+    
 ![image](https://user-images.githubusercontent.com/77626299/214999568-443dee1f-1ee5-44b4-9197-7faf89205946.png)  
 ![02](https://user-images.githubusercontent.com/77626299/214999579-4b63111b-4499-49f7-8333-6234f7d29dfc.png)  
 ![03](https://user-images.githubusercontent.com/77626299/214999588-81f4a98a-b9de-4dd2-90c1-46d424ee023a.png)
