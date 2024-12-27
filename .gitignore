@@ -36,13 +36,20 @@ out/
 ### VS Code ###
 .vscode/
 
-### Add by 박찬호 ###
+### Add by Chanos ###
 logs/
 application-dev.properties
 application-local.properties
 application-production.properties
 application-test.properties
+application-swagger.properties
 aws.yml
 src/main/java/com/dnd/ground/global/securityFilter/JWTDummySignFilter.java
 src/main/java/com/dnd/ground/global/securityFilter/JWTReissueAccessFilter.java
 nemodu-fcm.json
+*.env
+gradle/*
+git
+gradlew
+gradlew.bat
+settings.gradle
