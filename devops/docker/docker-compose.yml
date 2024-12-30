@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ${MYSQL_CONTAINER_NAME}
+    env_file: .env.${ENVIRONMENT}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:${MYSQL_INNER_PORT:-3306}"
+    volumes:
+      - ${MYSQL_VOL_HOST_PATH}:${MYSQL_VOL_INNER_PATH}
+      - ${MYSQL_INIT_SCRIPT_PATH}:/docker-entrypoint-initdb.d/create_admin_user.sql
+    networks:
+      - private_network
+
+  redis:
+    image: redis:7.0
+    container_name: ${REDIS_CONTAINER_NAME}
+    ports:
+      - "${REDIS_HOST_PORT}:${REDIS_INNER_PORT}"
+    volumes:
+      - "${REDIS_VOL_HOST_PATH}:${REDIS_VOL_INNER_PATH}"
+    networks:
+      - private_network
+
+  nemodu:
+    build:
+      context: ../../
+      dockerfile: devops/docker/Dockerfile
+    container_name: nemodu-backend
+    volumes:
+      - "${NEMODU_VOL_HOST_PATH}:${NEMODU_VOL_INNER_PATH}"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT}
+      SPRING_DATASOURCE_URL: jdbc:mysql://${MYSQL_CONTAINER_NAME}:${MYSQL_HOST_PORT}/${MYSQL_DATABASE}
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      REDIS_HOST: ${REDIS_CONTAINER_NAME}
+      SERVER_PORT: ${BACKEND_INNER_PORT}
+    ports:
+      - "${BACKEND_HOST_PORT}:${BACKEND_INNER_PORT}"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - public_network
+      - private_network
+
+networks:
+  private_network:
+    driver: bridge
+    internal: true
+  public_network:
+    driver: bridge
