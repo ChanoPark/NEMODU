@@ -1,6 +1,9 @@
 package com.dnd.ground.global.redis;
 
-import com.dnd.ground.global.util.ApplicationContextProvider;
+import com.dnd.ground.global.redis.subscriber.EventExpireSubscriber;
+import com.dnd.ground.global.redis.subscriber.FCMEventSubscriber;
+import com.dnd.ground.global.redis.subscriber.RTChallengeAlertSubscriber;
+import com.dnd.ground.global.redis.subscriber.RTChallengeEventSubscriber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
@@ -11,14 +14,16 @@ import org.springframework.stereotype.Component;
  * @description Redis Expire Event Listener
  * @author  박찬호
  * @since   2023-05-04
- * @updated 1.재발급 요청 방식 변경
- *          - 2023-05-11 박찬호
+ * @updated 구조 변경
  */
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class RedisEventListener implements MessageListener {
+    private final FCMEventSubscriber fcmEventSubscriber;
+    private final RTChallengeEventSubscriber rtChallengeEventSubscriber;
+    private final RTChallengeAlertSubscriber rtChallengeAlertSubscriber;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -27,7 +32,14 @@ public class RedisEventListener implements MessageListener {
         String messageStr = message.toString();
 
         if (RedisKeyConstant.FCM_PATTERN.find(messageStr)) {
-            eventExpireSubscriber = ApplicationContextProvider.getBean(FCMEventSubscriber.class);
+            // 푸시 알람
+            eventExpireSubscriber = fcmEventSubscriber;
+        } else if (RedisKeyConstant.RT_CHALLENGE_PATTERN.find(messageStr)) {
+            // 실시간 챌린지
+            eventExpireSubscriber = rtChallengeEventSubscriber;
+        } else if (RedisKeyConstant.RT_ALERT_PATTERN.find(messageStr)) {
+            // 실시간 챌린지 알람
+            eventExpireSubscriber = rtChallengeAlertSubscriber;
         } else {
             log.warn("Not found EventListener. meg:{}\tpattern:{}", message, new String(pattern));
             return ;
