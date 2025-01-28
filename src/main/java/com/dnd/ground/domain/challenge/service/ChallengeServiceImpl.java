@@ -2,6 +2,7 @@ package com.dnd.ground.domain.challenge.service;
 
 import com.dnd.ground.domain.challenge.*;
 import com.dnd.ground.domain.challenge.dto.*;
+import com.dnd.ground.domain.challenge.realtime.RTChallengeCacheRepository;
 import com.dnd.ground.domain.challenge.repository.ChallengeRepository;
 import com.dnd.ground.domain.challenge.repository.UserChallengeRepository;
 import com.dnd.ground.domain.exerciseRecord.ExerciseRecord;
@@ -33,8 +34,7 @@ import java.util.stream.Collectors;
  * @author 박찬호
  * @description 챌린지와 관련된 서비스의 역할을 분리한 구현체
  * @since 2022-08-03
- * @updated 1.ChallengeType -> ChallengeScoreType 클래스명 및 관련 변수명 수정
- *          - 2023-12-27 박찬호
+ * @updated 1.챌린지 생성 로직 수정
  */
 
 @Slf4j
@@ -44,11 +44,13 @@ public class ChallengeServiceImpl implements ChallengeService {
 
     private final UserRepository userRepository;
     private final ChallengeRepository challengeRepository;
+    private final RTChallengeCacheRepository rtChallengeCacheRepository;
     private final UserChallengeRepository userChallengeRepository;
     private final ExerciseRecordRepository exerciseRecordRepository;
     private final RankService rankService;
     private final MatrixRepository matrixRepository;
     private final ApplicationEventPublisher pushNotificationPublisher;
+
     private static final int MAX_CHALLENGE_COUNT = 3;
     private static final int MAX_CHALLENGE_MEMBER_COUNT = 3;
     private static final ChallengeColor[] color = ChallengeColor.values();
@@ -76,27 +78,34 @@ public class ChallengeServiceImpl implements ChallengeService {
         if (requestDto.getStarted().isBefore(LocalDateTime.now())) throw new ChallengeException(ExceptionCodeSet.CHALLENGE_DATE_INVALID);
         if (challengeCountMap.get(master) > MAX_CHALLENGE_COUNT) throw new ChallengeException(ExceptionCodeSet.FAIL_CREATE_CHALLENGE);
 
-        //챌린지 생성
-        Challenge challenge = Challenge.create()
-                .uuid(UuidUtil.createUUID())
-                .name(requestDto.getName())
-                .started(requestDto.getStarted())
-                .ended(ChallengeService.getSunday(requestDto.getStarted()))
-                .message(requestDto.getMessage())
-                .scoreType(requestDto.getScoreType())
-                .build();
+        Challenge challenge;
+        if (requestDto.getType() == ChallengeType.REALTIME) {
+            // 실시간 챌린지 생성
+            challenge = createRTChallenge(requestDto, members);
+        } else {
+            // 주간 챌린지 생성
+            challenge = Challenge.create()
+                    .uuid(UuidUtil.createUUID())
+                    .name(requestDto.getName())
+                    .started(requestDto.getStarted())
+                    .ended(ChallengeService.getSunday(requestDto.getStarted()))
+                    .message(requestDto.getMessage())
+                    .status(ChallengeStatus.WAIT)
+                    .scoreType(requestDto.getScoreType())
+                    .type(requestDto.getType())
+                    .build();
 
-        //챌린지 저장
-        challengeRepository.save(challenge);
+            //챌린지 저장
+            challengeRepository.save(challenge);
+        }
 
-        //챌린지 참여하는 관계 생성을 위한 변수
-        int exceptMemberCount = 0;
         List<String> exceptMembers = new ArrayList<>();
         List<UserResponseDto.UInfo> membersInfo = new ArrayList<>();
 
         //주최자 관계 생성
         int colorIdx = (int) (challengeCountMap.get(master) % MAX_CHALLENGE_COUNT);
-        userChallengeRepository.save(new UserChallenge(challenge, master, color[colorIdx], ChallengeStatus.MASTER, requestDto.getStarted()));
+        userChallengeRepository.save(new UserChallenge(challenge, master, color[colorIdx], ChallengeStatus.MASTER,
+                challenge.getStarted(), ChallengeService.getSunday(challenge.getStarted())));
         challengeCountMap.remove(master);
 
         //멤버 관계 생성
@@ -105,12 +114,12 @@ public class ChallengeServiceImpl implements ChallengeService {
             if (entry.getValue() <= MAX_CHALLENGE_COUNT) {
                 colorIdx = (int) (challengeCountMap.get(member) % MAX_CHALLENGE_COUNT);
 
-                userChallengeRepository.save(new UserChallenge(challenge, member, color[colorIdx], ChallengeStatus.WAIT, requestDto.getStarted()));
+                userChallengeRepository.save(new UserChallenge(challenge, member, color[colorIdx], ChallengeStatus.WAIT,
+                        challenge.getStarted(), ChallengeService.getSunday(challenge.getStarted())));
 
                 membersInfo.add(new UserResponseDto.UInfo(member.getNickname(), member.getPicturePath()));
             } else {
                 exceptMembers.add(member.getNickname());
-                exceptMemberCount++;
             }
         }
 
@@ -130,14 +139,45 @@ public class ChallengeServiceImpl implements ChallengeService {
                 )
         );
 
+
         return ChallengeCreateResponseDto.builder()
                 .members(membersInfo)
                 .message(challenge.getMessage())
                 .started(challenge.getStarted())
                 .ended(ChallengeService.getSunday(challenge.getStarted()))
-                .exceptMemberCount(exceptMemberCount)
+                .exceptMemberCount(exceptMembers.size())
                 .exceptMembers(exceptMembers)
                 .build();
+    }
+
+    private Challenge createRTChallenge(ChallengeCreateRequestDto requestDto, Set<String> members) {
+        // 실시간 챌린지 저장
+        Challenge rtChallenge = Challenge.create()
+                .uuid(UuidUtil.createUUID())
+                .name(requestDto.getName())
+                .started(requestDto.getStarted())
+                .ended(ChallengeService.getSunday(requestDto.getStarted()))
+                .message(requestDto.getMessage())
+                .status(ChallengeStatus.RT_WAIT)
+                .scoreType(requestDto.getScoreType())
+                .type(requestDto.getType())
+                .build();
+
+        challengeRepository.save(rtChallenge);
+
+        // 실시간 챌린지 캐싱
+        rtChallengeCacheRepository.saveRTChallenge(
+                UuidUtil.bytesToHex(rtChallenge.getUuid()),
+                rtChallenge.getName(),
+                new ArrayList<>(members),
+                rtChallenge.getStarted(),
+                rtChallenge.getEnded()
+        );
+
+        // 실시간 챌린지 알림 생성
+        rtChallengeCacheRepository.saveRTChallengeAlert(UuidUtil.bytesToHex(rtChallenge.getUuid()), rtChallenge.getStarted());
+
+        return rtChallenge;
     }
 
     /*유저-챌린지 상태 변경*/
