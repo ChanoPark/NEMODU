@@ -11,8 +11,7 @@ import java.util.List;
  * @description 챌린지 엔티티
  * @author  박찬호
  * @since   2022-07-26
- * @updated 1.ChallengeType -> ChallengeScoreType 클래스명 및 관련 변수명 수정
- *          - 2023-12-27 박찬호
+ * @updated 1.실시간 챌린지 관련 필드 추가
  */
 
 @Getter
@@ -53,20 +52,27 @@ public class Challenge {
     private ChallengeStatus status = ChallengeStatus.WAIT;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "challenge_type", nullable = false)
+    @Column(name = "challenge_score_type", nullable = false)
     private ChallengeScoreType scoreType;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "challenge_type", nullable = false)
+    private ChallengeType type;
+
+    @OneToMany(mappedBy = "challenge", cascade = CascadeType.ALL)
     private List<UserChallenge> users = new ArrayList<>();
 
     @Builder(builderMethodName = "create")
-    public Challenge(String name, byte[] uuid, LocalDateTime started, LocalDateTime ended, String message, ChallengeScoreType scoreType) {
+    public Challenge(String name, byte[] uuid, LocalDateTime started, LocalDateTime ended, String message,
+                     ChallengeScoreType scoreType, ChallengeType type, ChallengeStatus status) {
         this.uuid = uuid;
         this.name = name;
         this.started = started;
         this.ended = ended;
         this.message = message;
         this.scoreType = scoreType;
+        this.status = status;
+        this.type = type;
     }
 
     //챌린지 상태 업데이트
