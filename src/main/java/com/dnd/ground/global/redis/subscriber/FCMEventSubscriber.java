@@ -1,7 +1,8 @@
-package com.dnd.ground.global.redis;
+package com.dnd.ground.global.redis.subscriber;
 
 import com.dnd.ground.global.notification.repository.FcmTokenRepository;
 import com.dnd.ground.global.notification.service.FcmService;
+import com.dnd.ground.global.redis.RedisKeyConstant;
 import com.dnd.ground.global.util.DeviceType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +12,7 @@ import org.springframework.stereotype.Component;
  * @description FCM 토큰 만료 처리를 위한 Redis FCM Key expire 이벤트 처리
  * @author  박찬호
  * @since   2024-01-20
- * @updated 1. Redis Key expired event 처리 구조 개선
- *          - 2024-01-20 박찬호
+ * @updated 1. 패키지 이동
  */
 
 @Component
