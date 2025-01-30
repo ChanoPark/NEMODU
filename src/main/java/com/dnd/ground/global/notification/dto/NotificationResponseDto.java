@@ -38,6 +38,7 @@ public class NotificationResponseDto {
     private LocalDateTime reserved;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @ApiModelProperty(value = "챌린지 파라미터", example = "{\"challengeUuid\" : \"a2fg2c2~\"}")
     private NotificationChallengeData challengeData;
 
     public NotificationResponseDto(String messageId, String title, String content, Boolean isRead, NotificationMessage type, LocalDateTime reserved) {

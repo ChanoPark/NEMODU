@@ -44,8 +44,16 @@ public enum NotificationMessage {
     CHALLENGE_ACCEPTED("%s님의 챌린지 수락", "%s님이 챌린지를 수락했어요."),
     CHALLENGE_START_SOON("챌린지 진행 안내", "'%s' 챌린지가 오늘부터 시작됩니다."),
     CHALLENGE_CANCELED("챌린지 취소", "수락한 인원이 없어서 챌린지가 취소되었어요."),
-    CHALLENGE_RESULT("지난 주 챌린지 결과 안내", "'%s' 챌린지가 챌린지가 종료되었어요.");
+    CHALLENGE_RESULT("지난 주 챌린지 결과 안내", "'%s' 챌린지가 챌린지가 종료되었어요."),
 
+    /**
+     * 실시간 챌린지
+     */
+    RT_CHALLENGE_WAIT_10_MIN("%s 챌린지 시작 10분 전", "%s 챌린지 시작이 10분 남았어요."),
+    RT_CHALLENGE_WAIT_5_MIN("%s 챌린지 시작 5분 전", "%s 챌린지 시작이 5분 남았어요."),
+    RT_CHALLENGE_WAIT_1_MIN("%s 챌린지가 곧 시작해요.", "%s 챌린지 시작이 1분 남았어요."),
+    RT_CHALLENGE_PROGRESS("%s 챌린지 시작 안내", "%s 챌린지가 시작되었어요."),
+    ;
 
     private String title;
     private String content;

@@ -83,7 +83,7 @@ public class NotificationForm {
     }
 
     public void init() {
-        this.logger = (NotificationLogger) ApplicationContextProvider.getBean(NotificationLogger.class);
+        this.logger = ApplicationContextProvider.getBean(NotificationLogger.class);
 
         if (this.message == null) {
             this.logger.errorWrite("메시지가 존재하지 않습니다.");

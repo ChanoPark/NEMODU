@@ -55,7 +55,7 @@ public class PushNotification {
     @Column(name="is_deleted", nullable = false)
     private Boolean isDeleted;
 
-    @Column(name="type", nullable = false)
+    @Column(name="scoreType", nullable = false)
     @Enumerated(EnumType.STRING)
     private PushNotificationType type;
 
